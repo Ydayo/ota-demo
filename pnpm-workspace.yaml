@@ -1,0 +1,27 @@
+packages:
+  - apps/*
+  - packages/shared
+  - packages/platform
+  - packages/modules/*
+  - packages/products/*
+  - tooling/*
+
+catalog:
+  "@eslint-community/eslint-plugin-eslint-comments": 4.8.1
+  "@eslint/js": 9.39.5
+  "@fast-check/vitest": 0.5.0
+  "@types/node": 24.19.0
+  "@typescript/native": npm:typescript@7.0.2
+  "@vitest/coverage-v8": 4.1.11
+  "@vitest/eslint-plugin": 1.6.27
+  dependency-cruiser: 18.4.0
+  eslint: 9.39.5
+  fast-check: 4.10.2
+  globals: 17.12.0
+  turbo: 2.11.4
+  typescript: npm:@typescript/typescript6@6.0.2
+  typescript-eslint: 8.70.1
+  vitest: 4.1.11
+
+allowBuilds:
+  esbuild: true

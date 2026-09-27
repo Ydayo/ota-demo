@@ -1,0 +1,12 @@
+{
+  "name": "@ota/product-hotel",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": { "@ota/shared": "workspace:*", "@ota/booking": "workspace:*" }
+}
