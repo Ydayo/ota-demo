@@ -57,7 +57,7 @@
 
 要点のみを示す。**該当する作業をするとき、または判断に迷ったときは、リンク先の ADR を読んでから進めること。**
 
-- ADR は影響範囲でルートかモジュールの `docs/adr/` に置く。main にある ADR はすべて有効で、書き換えない。変更は新しい ADR で置き換える → [ADR-0001](docs/adr/0001-record-architecture-decisions.md)、[ADR-0014](docs/adr/0014-drop-adr-status-field.md)
+- ADR は影響範囲でルートかモジュールの `docs/adr/` に置く。main にある ADR はすべて有効で、書き換えない。変更は新しい ADR で置き換える → [ADR-0001](docs/adr/0001-record-architecture-decisions.md)
 - コンテキストごとに1パッケージ、公開は `index.ts` のみ → [ADR-0002](docs/adr/0002-monorepo-and-package-granularity.md)
 - DDD は関数と型で書く。状態遷移は判別共用体、遷移関数はイベントを返す → [ADR-0003](docs/adr/0003-functional-domain-modeling-style.md)
 - 依存ルールは dependency-cruiser が検査する。他コンテキストの利用は application のポートと infrastructure のアダプター経由 → [ADR-0004](docs/adr/0004-module-dependency-rules.md)
