@@ -35,8 +35,8 @@ export const enforce =
     if (session === null) return c.json({ error: 'unauthenticated' }, 401);
     if (authPolicy.kind === 'owner') {
       const ownerId = await authPolicy.ownerOf(c);
-      if (ownerId === null) return c.json({ error: 'not_found' }, 404);
-      if (ownerId !== session.userId) return c.json({ error: 'forbidden' }, 403);
+      // 他のユーザーのリソースは、存在しないリソースと区別せず 404 を返す(ADR-0014)
+      if (ownerId === null || ownerId !== session.userId) return c.json({ error: 'not_found' }, 404);
     }
     await next();
     return;

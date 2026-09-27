@@ -22,13 +22,12 @@ export type DefinedRoute<R extends RouteConfig> = {
 
 const deniedResponses = {
   401: { description: '未ログイン' },
-  403: { description: '他のユーザーのリソース' },
-  404: { description: 'リソースが存在しない' },
+  404: { description: 'リソースが存在しない、または他のユーザーのリソース(ADR-0014)' },
 } as const;
 
 /**
  * 認可ポリシーつきでルートを定義する。ポリシーは省略できない。
- * ポリシーに応じた拒否レスポンス(401/403/404)を OpenAPI の定義に自動で加える。
+ * ポリシーに応じた拒否レスポンス(401/404)を OpenAPI の定義に自動で加える。
  */
 export const defineRoute = <const R extends Omit<RouteConfig, 'middleware'>>(
   authPolicy: AuthPolicy,

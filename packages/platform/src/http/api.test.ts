@@ -58,8 +58,11 @@ describe('認可ポリシー(ADR-0010)', () => {
     expect((await get(setup(), '/api/things/1')).status).toBe(401);
   });
 
-  test('owner は他のユーザーだと 403', async () => {
-    expect((await get(setup(), '/api/things/1', OTHER)).status).toBe(403);
+  test('owner は他のユーザーだと、存在しないリソースと同じ 404', async () => {
+    const res = await get(setup(), '/api/things/1', OTHER);
+    const missing = await get(setup(), '/api/things/missing', OWNER);
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual(await missing.json());
   });
 
   test('owner は所有者ならアクセスできる', async () => {
@@ -105,7 +108,6 @@ describe('ルートの登録', () => {
     expect(Object.keys(doc.paths['/api/things/{id}']?.get?.responses ?? {}).sort()).toEqual([
       '200',
       '401',
-      '403',
       '404',
     ]);
   });
