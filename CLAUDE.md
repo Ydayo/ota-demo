@@ -80,3 +80,4 @@
 - 最新メジャー版を見送るツールがある(ESLint、Vitest、Drizzle)。勝手に上げない → [ADR-0012](docs/adr/0012-technology-stack-and-versions.md)
 - 人間が承認した PR は、承認されたコミットの SHA を指定して bot がマージする → [ADR-0013](docs/adr/0013-bot-merges-human-approved-pull-requests.md)
 - CI の必須チェックは集約ジョブ `ci-ok` のみ。PR の分離・Route Handler・要件トレーサビリティ・Grilling 記録の検査の判定 → [ADR-0018](docs/adr/0018-ci-workflow-and-harness-checks.md)
+- ミューテーションテストの閾値は domain 系 80 / その他 60(下げるには ADR)。E2E は Playwright + axe、OpenAPI の破壊的変更は oasdiff で常に失敗 → [ADR-0019](docs/adr/0019-mutation-e2e-and-openapi-checks.md)
