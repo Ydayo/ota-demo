@@ -97,4 +97,4 @@ ADR-0007 で、GitHub Actions の CI を最終ゲートとし、ルールセッ�
 - OpenSpec の差分仕様の解釈(節の見出しを大文字小文字を区別せずに照合、RENAMED の `FROM:` / `TO:` の書式、コードブロックの中の無視): OpenSpec 1.13.2 のソース(`dist/core/parsers/requirement-blocks.js`)で確認。https://github.com/Fission-AI/OpenSpec/blob/main/src/core/parsers/requirement-blocks.ts
 - Vitest のテストのオプション(`skip`、`todo`、`fails`)と修飾子(`skipIf`、`runIf`): Vitest 4.1.11 の型定義(`@vitest/runner` の `TestOptions`、`ChainableTestAPI`)で確認。https://vitest.dev/api/
 - 未確認: Playwright の `test.fixme` と `test.skip()` の扱い。受け入れテストは現時点では Vitest で実行するため、Playwright で受け入れテストを書くことになった時点で確認する。
-- 未確認: `pull_request` のマージコミット上で `base.sha...head.sha` の差分が PR の変更分と一致すること(git の merge-base の仕様からの推論)。CI の初回の実行で確認する。
+- `base.sha...head.sha` の差分が PR の変更ファイルと一致すること: Ydayo/ota-demo#8 で、`git diff --name-only --no-renames` の結果と GitHub API(`pulls/{number}/files`)の一覧が一致することを確認(29 ファイル)
