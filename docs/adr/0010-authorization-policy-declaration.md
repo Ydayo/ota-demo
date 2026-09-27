@@ -38,6 +38,7 @@
 - ミドルウェアをルートごとに付ける: 付け忘れを型で検出できないため不採用。
 - すべてを既定でログイン必須にする: 公開ルートの宣言漏れは防げるが、本人のリソースのみという制約の付け忘れは防げないため不採用。
 - Server Actions を認可ポリシーつきで許可する: 認可の検査経路が2つになるため不採用。
+- 薄い Server Actions(Hono の API を呼ぶ中継と `revalidatePath` のみ)を許可する: `<form action>` による JavaScript なしの送信や、送信後の画面更新が簡単になる利点がある。一方で、Action の1つ1つが直接 POST で呼べる公開の入口になり、Action が中継以外をしていないことを保証する検査が追加で必要になる。書き込みの呼び出し経路も2通りになる。人間がコードをレビューしない本プロジェクトでは、認可の漏れを機械で防げることとハーネスの単純さを優先し、不採用とした。フォームの使い勝手が必要になった時点で、ADR で再検討する。
 
 ## 結果
 
@@ -45,6 +46,8 @@
 - 新しいルートを追加すると、認可の検査テストが自動で対象に含まれる。
 
 ## 出典(確認日: 2026-09-27)
+
+- Server Actions は直接の POST リクエストで呼び出せ、Action ごとに認証と認可の確認が必要: https://nextjs.org/docs/app/guides/data-security
 
 - Hono の `app.routes`: ソースコード上の公開プロパティ(`routes: RouterRoute[]`)。公式ドキュメントには記載がない: https://github.com/honojs/hono/blob/main/src/hono-base.ts
   - ドキュメントに記載のない API のため、Hono の更新で変わる可能性がある。変わった場合は突き合わせのテスト自体が失敗して気づける。代替として `hono/dev` の `inspectRoutes` がある(こちらもドキュメント未記載。`showRoutes` は記載あり): https://hono.dev/docs/helpers/dev 、 https://github.com/honojs/hono/blob/main/src/helper/dev/index.ts
