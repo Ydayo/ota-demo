@@ -48,7 +48,6 @@
 ## 出典(確認日: 2026-09-27)
 
 - Server Actions は直接の POST リクエストで呼び出せ、Action ごとに認証と認可の確認が必要: https://nextjs.org/docs/app/guides/data-security
-
 - Hono の `app.routes`: ソースコード上の公開プロパティ(`routes: RouterRoute[]`)。公式ドキュメントには記載がない: https://github.com/honojs/hono/blob/main/src/hono-base.ts
   - ドキュメントに記載のない API のため、Hono の更新で変わる可能性がある。変わった場合は突き合わせのテスト自体が失敗して気づける。代替として `hono/dev` の `inspectRoutes` がある(こちらもドキュメント未記載。`showRoutes` は記載あり): https://hono.dev/docs/helpers/dev 、 https://github.com/honojs/hono/blob/main/src/helper/dev/index.ts
 - @hono/zod-openapi の `openAPIRegistry`: https://github.com/honojs/middleware/blob/main/packages/zod-openapi/src/index.ts
