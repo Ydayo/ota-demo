@@ -77,3 +77,4 @@
 - 用語はコンテキストごとの `CONTEXT.md` に従う → [ADR-0011](docs/adr/0011-ubiquitous-language-in-context-files.md)
 - 最新メジャー版を見送るツールがある(ESLint、Vitest、Drizzle)。勝手に上げない → [ADR-0012](docs/adr/0012-technology-stack-and-versions.md)
 - 人間が承認した PR は、承認されたコミットの SHA を指定して bot がマージする → [ADR-0013](docs/adr/0013-bot-merges-human-approved-pull-requests.md)
+- CI の必須チェックは集約ジョブ `ci-ok` のみ。PR の分離・Route Handler・要件トレーサビリティ・Grilling 記録の検査の判定 → [ADR-0018](docs/adr/0018-ci-workflow-and-harness-checks.md)
