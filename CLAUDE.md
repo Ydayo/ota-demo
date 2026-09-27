@@ -37,8 +37,9 @@
 4. レビュー(reviewer): `reviewer` サブエージェントに仕様と差分だけを渡す。
 5. ゲート: ローカルで `pnpm check` を通して PR を作る。最終判定は CI。
 
-- 役割は人間がセッション起動時に `OTA_ROLE` で指定する(例: `OTA_ROLE=spec-author claude`。未指定は implementer)。役割は spec-author / test-author / implementer / reviewer / harness の5つ。ハーネス(hooks、CI、検査スクリプト、閾値、OpenSpec のスキーマ)の変更は harness の役割で行う。
-- 役割ごとのサブエージェントが `.claude/agents/` にある。レビューは必ず `reviewer` サブエージェントに任せる(実装の推論を見せないため)。サブエージェントはロックを解除しない。
+- 保護対象(仕様・用語集・ADR、受け入れテスト、ハーネス)への書き込みでは、人間の確認ダイアログが出る。憲法は AI が変更できない。
+- 実装の PR と、仕様・受け入れテストの PR は分ける(CI が検査する)。
+- 作業の文脈を分けるためのサブエージェント(spec-author / test-author / implementer / reviewer)が `.claude/agents/` にある。レビューは必ず `reviewer` サブエージェントに任せる(実装の推論を見せないため)。
 - hook やゲートにブロックされたら、迂回せずに作業を止めて人間に報告する。
 - テスト名には、検証する要件IDを含める(例: `test('REQ-BOOKING-012: ...')`)。
 
@@ -66,7 +67,7 @@
 - DDD は関数と型で書く。状態遷移は判別共用体、遷移関数はイベントを返す → [ADR-0003](docs/adr/0003-functional-domain-modeling-style.md)
 - 依存ルールは dependency-cruiser が検査する。他コンテキストの利用は application のポートと infrastructure のアダプター経由 → [ADR-0004](docs/adr/0004-module-dependency-rules.md)
 - 仕様は OpenSpec(スキーマ `ota-flow`)、要件IDは要件の見出しに含め、本文は日本語の EARS 形式で文末に `(SHALL)` → [ADR-0005](docs/adr/0005-spec-driven-development-with-openspec.md)、[ADR-0015](docs/adr/0015-protect-openspec-schema-as-harness.md)
-- 役割ごとの書き込みロック → [ADR-0006](docs/adr/0006-write-locks-for-specs-and-acceptance-tests.md)
+- 保護対象への書き込みは人間の確認、実装と仕様・受け入れテストは別の PR → [ADR-0006](docs/adr/0006-write-locks-for-specs-and-acceptance-tests.md)、[ADR-0016](docs/adr/0016-protect-by-confirmation-and-pr-separation.md)
 - 最終ゲートはルールセットと CI、PR は bot アカウントで作る。人間の GitHub 認証情報は使わない → [ADR-0007](docs/adr/0007-ci-as-final-gate-with-bot-account.md)
 - 横断的な技術基盤は `@ota/platform`(infrastructure と apps のみ参照可) → [ADR-0008](docs/adr/0008-platform-package-for-cross-cutting-concerns.md)
 - 業務上のエラーは `Result` で返す → [ADR-0009](docs/adr/0009-result-type-for-domain-errors.md)

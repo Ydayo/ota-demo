@@ -1,27 +1,22 @@
-// 書き込みロックの対象と、役割ごとの解除範囲(ADR-0006)。
-
-export const ROLES = ['spec-author', 'test-author', 'implementer', 'reviewer', 'harness'] as const;
-export type Role = (typeof ROLES)[number];
+// 保護対象と、書き込み時の扱い(ADR-0016)。
+// - ask: Claude Code の確認ダイアログで人間が毎回許可する
+// - deny: どんな場合も AI には書き込ませない
 
 export type ProtectedArea =
   | 'spec' // 仕様・用語集・ADR
   | 'acceptance-test' // 受け入れテスト
-  | 'harness' // hooks、CI、検査スクリプト、閾値設定、CLAUDE.md
-  | 'constitution' // 憲法(どの役割でも書き込めない)
-  | 'user-claude-config'; // ~/.claude(どの役割でも書き込めない)
+  | 'harness' // hooks、CI、検査スクリプト、閾値設定、CLAUDE.md、OpenSpec のスキーマ
+  | 'constitution' // 憲法
+  | 'user-claude-config'; // ~/.claude
 
-const ALLOWED: Record<Role, readonly ProtectedArea[]> = {
-  'spec-author': ['spec'],
-  'test-author': ['acceptance-test'],
-  implementer: [],
-  reviewer: [],
-  harness: ['harness'],
-};
+export type Decision = 'ask' | 'deny';
 
-/** 環境変数 OTA_ROLE を解釈する。未指定は implementer。不正な値は undefined */
-export const parseRole = (value: string | undefined): Role | undefined => {
-  if (value === undefined || value === '') return 'implementer';
-  return (ROLES as readonly string[]).includes(value) ? (value as Role) : undefined;
+export const DECISION: Record<ProtectedArea, Decision> = {
+  spec: 'ask',
+  'acceptance-test': 'ask',
+  harness: 'ask',
+  constitution: 'deny',
+  'user-claude-config': 'deny',
 };
 
 const HARNESS_FILES = new Set([
@@ -38,13 +33,12 @@ export const classifyRelative = (rel: string): ProtectedArea | undefined => {
   const path = rel.replace(/^\.\//, '');
   const base = path.split('/').pop() ?? path;
   if (path === 'docs/constitution.md') return 'constitution';
-  // OpenSpec のスキーマと設定は Grilling の強制を含むため、仕様ではなくハーネスとして扱う
+  // OpenSpec のスキーマと設定は Grilling の強制を含むため、仕様ではなくハーネスとして扱う(ADR-0015)
   if (path.startsWith('openspec/schemas/') || path === 'openspec/config.yaml') return 'harness';
   if (
     path.startsWith('openspec/') ||
     path === 'CONTEXT-MAP.md' ||
     base === 'CONTEXT.md' ||
-    path.startsWith('docs/adr/') ||
     /(^|\/)docs\/adr\//.test(path)
   ) {
     return 'spec';
@@ -82,13 +76,25 @@ export const classifyPath = (target: string, ctx: PathContext): ProtectedArea | 
   return classifyRelative(expanded);
 };
 
-export const isAllowed = (role: Role, area: ProtectedArea): boolean => ALLOWED[role].includes(area);
+export const ADR_PROTECTION = 'docs/adr/0016-protect-by-confirmation-and-pr-separation.md';
 
-export const ADR_LOCK = 'docs/adr/0006-write-locks-for-specs-and-acceptance-tests.md';
+const AREA_LABEL: Record<ProtectedArea, string> = {
+  spec: '仕様・用語集・ADR',
+  'acceptance-test': '受け入れテスト',
+  harness: 'ハーネス',
+  constitution: '憲法',
+  'user-claude-config': 'ユーザーの Claude Code 設定',
+};
 
-export const lockMessage = (target: string, area: ProtectedArea, role: Role): string =>
+export const askMessage = (target: string, area: ProtectedArea): string =>
+  `保護対象(${AREA_LABEL[area]})への書き込みです: ${target}。人間の確認が必要です(${ADR_PROTECTION})。`;
+
+export const denyMessage = (target: string, area: ProtectedArea): string =>
   [
-    `書き込みはロックされています: ${target}(保護対象: ${area}、現在の役割: ${role})`,
+    `${AREA_LABEL[area]}は AI が変更できません: ${target}`,
+    area === 'constitution' ? '憲法の変更は人間が GitHub 上で行います(ADR-0007)。' : '',
     '迂回せずに作業を止め、人間に報告してください。',
-    `根拠: ${ADR_LOCK}`,
-  ].join('\n');
+    `根拠: ${ADR_PROTECTION}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
