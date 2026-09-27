@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.turbo/
+dist/
+coverage/
+reports/
+.stryker-tmp/
+test-results/
+playwright-report/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
