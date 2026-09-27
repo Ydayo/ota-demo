@@ -72,4 +72,4 @@ CLAUDE.md、ADR、仕様、コードのいずれかがこの憲法と矛盾す�
 | ゲート | gate | CI で実行され、失敗すればマージを阻止する機械的な検査 |
 | ハーネス | harness | ゲート、hooks、検査スクリプト、閾値設定など、品質を機械的に保証する仕組みの総称 |
 | Grilling | grilling | 変更提案の作成前に、AI が人間に質問を重ねて計画と用語を詰める対話 |
-| 役割 | role | AI の作業者の担当。spec-author(仕様・用語集・ADR の作成)、test-author(受け入れテスト作成)、implementer(実装)、reviewer(レビュー)、harness(ハーネスの変更)。人間がセッション起動時に `OTA_ROLE` で指定する。どの役割もこの憲法は変更できない |
+| 役割 | role | AI の作業の文脈を分けるための担当。spec-author(仕様・用語集・ADR の作成)、test-author(受け入れテスト作成)、implementer(実装)、reviewer(レビュー)。`.claude/agents/` のサブエージェントとして使う。書き込みの許可には関係しない(ADR-0016) |

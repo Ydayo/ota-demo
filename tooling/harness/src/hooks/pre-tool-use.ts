@@ -1,26 +1,35 @@
-// PreToolUse hook: 保護対象への書き込みと、ゲートの迂回をブロックする(ADR-0006)。
+// PreToolUse hook(ADR-0016):
+// - 保護対象への書き込みは、Claude Code の確認ダイアログで人間に毎回確認する(ask)
+// - ~/.claude への書き込みと、ゲートの迂回は常に拒否する(deny)
 
 import { checkBash } from './bash-guard.ts';
 import { block, pathContext, readInput, str } from './io.ts';
-import { classifyPath, isAllowed, lockMessage, parseRole } from './protected-paths.ts';
+import { askMessage, classifyPath, DECISION, denyMessage } from './protected-paths.ts';
 
 const FILE_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
+
+const ask = (reason: string): void => {
+  process.stdout.write(
+    JSON.stringify({
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask', permissionDecisionReason: reason },
+    }),
+  );
+};
 
 const input = await readInput();
 const toolName = str(input['tool_name']) ?? '';
 const toolInput = (input['tool_input'] ?? {}) as Record<string, unknown>;
 const ctx = pathContext();
 
-const role = parseRole(process.env['OTA_ROLE']);
-if (role === undefined) {
-  block(`OTA_ROLE の値が不正です: ${process.env['OTA_ROLE'] ?? ''}(docs/adr/0006-write-locks-for-specs-and-acceptance-tests.md)`);
-} else if (FILE_TOOLS.has(toolName)) {
+if (FILE_TOOLS.has(toolName)) {
   const target = str(toolInput['file_path']) ?? str(toolInput['notebook_path']);
-  if (target !== undefined) {
-    const area = classifyPath(target, ctx);
-    if (area !== undefined && !isAllowed(role, area)) block(lockMessage(target, area, role));
+  const area = target === undefined ? undefined : classifyPath(target, ctx);
+  if (target !== undefined && area !== undefined) {
+    if (DECISION[area] === 'deny') block(denyMessage(target, area));
+    else ask(askMessage(target, area));
   }
 } else if (toolName === 'Bash') {
-  const verdict = checkBash(str(toolInput['command']) ?? '', role, ctx);
-  if (!verdict.allowed) block(verdict.reason);
+  const verdict = checkBash(str(toolInput['command']) ?? '', ctx);
+  if (verdict.decision === 'deny') block(verdict.reason);
+  else if (verdict.decision === 'ask') ask(verdict.reason);
 }

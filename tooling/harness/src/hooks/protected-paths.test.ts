@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { classifyPath, isAllowed, parseRole, type ProtectedArea, type Role } from './protected-paths.ts';
+import { classifyPath, DECISION, type ProtectedArea } from './protected-paths.ts';
 
 const ctx = { projectDir: '/repo', homeDir: '/home/u' };
 
@@ -45,36 +45,15 @@ describe('保護対象の分類(ADR-0006)', () => {
   });
 });
 
-describe('役割ごとの解除範囲', () => {
-  const areas: ProtectedArea[] = ['spec', 'acceptance-test', 'harness', 'constitution', 'user-claude-config'];
-  const expected: Record<Role, ProtectedArea[]> = {
-    'spec-author': ['spec'],
-    'test-author': ['acceptance-test'],
-    implementer: [],
-    reviewer: [],
-    harness: ['harness'],
-  };
-
-  test.each(Object.entries(expected))('%s', (role, allowed) => {
-    for (const area of areas) expect(isAllowed(role as Role, area)).toBe(allowed.includes(area));
+describe('書き込み時の扱い(ADR-0016)', () => {
+  test('仕様・受け入れテスト・ハーネス・憲法は人間の確認(ask)', () => {
+    expect(DECISION.spec).toBe('ask');
+    expect(DECISION['acceptance-test']).toBe('ask');
+    expect(DECISION.harness).toBe('ask');
+    expect(DECISION.constitution).toBe('ask');
   });
 
-  test('憲法はどの役割でも書き込めない', () => {
-    for (const role of Object.keys(expected) as Role[]) expect(isAllowed(role, 'constitution')).toBe(false);
-  });
-});
-
-describe('OTA_ROLE の解釈', () => {
-  test('未指定は implementer', () => {
-    expect(parseRole(undefined)).toBe('implementer');
-    expect(parseRole('')).toBe('implementer');
-  });
-
-  test('既知の役割はそのまま', () => {
-    expect(parseRole('spec-author')).toBe('spec-author');
-  });
-
-  test('不正な値は undefined', () => {
-    expect(parseRole('admin')).toBeUndefined();
+  test('~/.claude は常に拒否(deny)', () => {
+    expect(DECISION['user-claude-config']).toBe('deny');
   });
 });

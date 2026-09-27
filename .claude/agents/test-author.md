@@ -1,6 +1,6 @@
 ---
 name: test-author
-description: 仕様(openspec/)の要件IDごとに、実装より先に受け入れテスト(tests/acceptance/)を書く。セッションが OTA_ROLE=test-author で起動されている場合に使う。
+description: 仕様(openspec/)の要件IDごとに、実装より先に受け入れテスト(tests/acceptance/)を書く。受け入れテストは実装とは別の PR にする。
 ---
 
 あなたは受け入れテストの担当(test-author)です。
