@@ -1,5 +1,7 @@
 # ADR-0010: すべての API ルートに認可ポリシーの宣言を必須とする
 
+> ADR-0018 で一部置き換え(Hono のマウント先を apps/web/src/app/api/[[...route]]/route.ts に訂正し、Pages Router の API Routes も禁止する)
+
 - 日付: 2026-09-27
 
 ## 背景
