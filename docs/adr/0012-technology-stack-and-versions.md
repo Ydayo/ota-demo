@@ -48,3 +48,24 @@
 
 - ハーネスが確実に動く組み合わせになる。
 - 見送った版の問題が解消されたかを定期的に確認する必要がある。
+
+## 出典(確認日: 2026-09-27)
+
+- TypeScript 7 と TypeScript 6 の併用: https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/
+- typescript-eslint の対応 TypeScript 版: https://typescript-eslint.io/users/dependency-versions 、 https://github.com/typescript-eslint/typescript-eslint/issues/12518
+- dependency-cruiser の TS7 対応予定: https://github.com/sverweij/dependency-cruiser/releases
+- Stryker の TS7 実験的対応: https://github.com/stryker-mutator/stryker-js/pull/6099
+- Stryker の Vitest 5 不具合: https://github.com/stryker-mutator/stryker-js/issues/6210
+- Stryker の設定(閾値はグローバルのみ): https://stryker-mutator.io/docs/stryker-js/configuration/
+- eslint-plugin-react の ESLint 10 不具合: https://github.com/jsx-eslint/eslint-plugin-react/issues/3977
+- ESLint 10: https://eslint.org/blog/2026/02/eslint-v10.0.0-released/
+- Vitest 5 の移行ガイド: https://vitest.dev/guide/migration/
+- pnpm 11 / 12: https://pnpm.io/blog/releases/11.0 、 https://pnpm.io/blog/releases/12.0
+- Turborepo のサポート方針: https://turborepo.dev/docs/getting-started/support-policy
+- Volta の保守終了: https://github.com/volta-cli/volta/issues/2080
+- Next.js 16 への移行: https://nextjs.org/docs/app/guides/upgrading/version-16
+- Drizzle v1 への移行(1.0 は未リリース): https://orm.drizzle.team/docs/upgrade-v1
+- PostgreSQL 公式イメージ: https://hub.docker.com/_/postgres
+- oasdiff: https://github.com/oasdiff/oasdiff 、 https://github.com/oasdiff/oasdiff-action
+
+未確認: Next.js の型チェックが TS7 と TS6 の併用構成でどちらの `tsc` を使うか、drizzle-kit と @hono/zod-openapi の TS7 下での実機動作。フェーズ0の実装で確認し、結果をこの節に追記する。
