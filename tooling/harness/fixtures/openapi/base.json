@@ -1,0 +1,16 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "fixture", "version": "0" },
+  "paths": {
+    "/api/x": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "id": { "type": "string" } }, "required": ["id"] } } }
+          }
+        }
+      }
+    }
+  }
+}

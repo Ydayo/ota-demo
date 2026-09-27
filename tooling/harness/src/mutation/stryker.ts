@@ -17,21 +17,30 @@ export const THRESHOLDS = {
 
 export type PackageKind = keyof typeof THRESHOLDS;
 
+/** 変異させるファイル。パッケージのすべてのソースを対象にし、対象外は exclude で明示させる */
+export const MUTATE_ALL = '**/*.{ts,tsx,mts,cts}';
+
+/** どのパッケージでも変異させないもの(テスト、型宣言、生成物) */
+export const ALWAYS_EXCLUDED = ['**/*.test.ts', '**/*.test.tsx', '**/*.d.ts', '.next/**'] as const;
+
+/** Stryker 用の Vitest 設定。各パッケージの設定がこれを使っていることを自己テストで検査する */
+export const VITEST_CONFIG_FILE = fileURLToPath(new URL('vitest.config.ts', import.meta.url));
+
 export type StrykerOptions = {
   /** パッケージの種類。閾値を決める */
   readonly kind: PackageKind;
-  /** 変異させるファイル(パッケージのディレクトリ基準の glob)。テストファイルは自動で除く */
-  readonly mutate: readonly string[];
+  /** 変異させないファイル(パッケージのディレクトリ基準の glob)。理由を設定ファイルのコメントに書く */
+  readonly exclude?: readonly string[];
 };
 
-export const strykerConfig = ({ kind, mutate }: StrykerOptions) => ({
+export const strykerConfig = ({ kind, exclude = [] }: StrykerOptions) => ({
   // pnpm の配置では Stryker がプラグインを自動で見つけられないため、パスで指定する
   plugins: [fileURLToPath(import.meta.resolve('@stryker-mutator/vitest-runner'))],
   testRunner: 'vitest',
-  vitest: {
-    configFile: fileURLToPath(new URL('vitest.config.ts', import.meta.url)),
-  },
-  mutate: [...mutate, '!**/*.test.ts', '!**/*.integration.test.ts'],
+  vitest: { configFile: VITEST_CONFIG_FILE },
+  mutate: [MUTATE_ALL, ...[...ALWAYS_EXCLUDED, ...exclude].map((p) => `!${p}`)],
+  // 生成物をサンドボックスにコピーしない
+  ignorePatterns: ['.next', 'reports', 'test-results', 'playwright-report'],
   thresholds: THRESHOLDS[kind],
   // allowEmpty は既定の false のままにする。true にすると、テストが0件のときにスコアを計算せずに成功するため、
   // テストのないコードが素通りする。変異させるコードがないパッケージは、実行用のスクリプト(run.ts)がスキップする。

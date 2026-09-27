@@ -112,3 +112,11 @@ describe('ルートの登録', () => {
     ]);
   });
 });
+
+describe('ルートの定義(ADR-0019)', () => {
+  test('hide を指定して OpenAPI 文書から隠すことはできない(型で拒否する)', () => {
+    // @ts-expect-error hide は指定できない(破壊的変更の検知をすり抜けるため)
+    const hidden = defineRoute(policy.public, { method: 'get', path: '/hidden', hide: true, responses: ok });
+    expect(hidden.policy).toEqual(policy.public);
+  });
+});

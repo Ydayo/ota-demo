@@ -169,7 +169,8 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm --filter @ota/tests exec playwright install --with-deps chromium
       - run: pnpm --filter @ota/web build
-      - run: pnpm --filter @ota/tests e2e
+      # package.json のスクリプトを経由せず、設定ファイルを明示して実行する
+      - run: pnpm --filter @ota/tests exec playwright test -c playwright.config.ts
       - if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -200,11 +201,21 @@ jobs:
             "https://github.com/oasdiff/oasdiff/releases/download/v${OASDIFF_VERSION}/oasdiff_${OASDIFF_VERSION}_linux_amd64.tar.gz"
           echo "${OASDIFF_SHA256}  ${archive}" | sha256sum -c -
           tar -xzf "$archive" -C "$RUNNER_TEMP" oasdiff
+      - name: oasdiff が破壊的変更を検出できることを確かめる(自己テスト)
+        run: |
+          fixtures=tooling/harness/fixtures/openapi
+          "$RUNNER_TEMP/oasdiff" breaking "$fixtures/base.json" "$fixtures/base.json" --fail-on ERR
+          if "$RUNNER_TEMP/oasdiff" breaking "$fixtures/base.json" "$fixtures/breaking.json" --fail-on ERR; then
+            echo "::error::oasdiff が破壊的変更のフィクスチャで失敗しませんでした"
+            exit 1
+          fi
       - name: base と比べて破壊的変更がないことを確かめる
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if ! git cat-file -e "$BASE_SHA:apps/web/openapi.json" 2>/dev/null; then
+          # BASE_SHA を取得できていなければ、ここで失敗する(比較をスキップさせない)
+          git cat-file -e "${BASE_SHA}^{commit}"
+          if [ -z "$(git ls-tree --name-only "$BASE_SHA" -- apps/web/openapi.json)" ]; then
             echo "::notice::base に apps/web/openapi.json がないため比較しません(導入する PR のみ)"
             exit 0
           fi

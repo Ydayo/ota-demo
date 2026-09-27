@@ -41,6 +41,27 @@ describe('CI のワークフロー(ADR-0018)', () => {
     for (const uses of external) expect(uses).toMatch(/^[\w.-]+\/[\w.-]+@[0-9a-f]{40}$/);
   });
 
+  const runOf = (job: string): string =>
+    (workflow.jobs[job]?.steps ?? []).map((s) => (s as { run?: string }).run ?? '').join('\n');
+
+  test.each([
+    ['harness-checks', 'node tooling/harness/src/checks/run.ts repo'],
+    ['pr-separation', 'node "$RUNNER_TEMP/base/tooling/harness/src/checks/run.ts" pr-separation'],
+    ['mutation', 'node tooling/harness/src/mutation/run.ts'],
+    ['e2e', 'playwright test -c playwright.config.ts'],
+    ['openapi', 'sha256sum -c -'],
+    ['openapi', '"$fixtures/breaking.json" --fail-on ERR'],
+    ['openapi', 'apps/web/openapi.json --fail-on ERR'],
+  ])('%s ジョブが検査を実行する: %s', (job, command) => {
+    expect(runOf(job)).toContain(command);
+  });
+
+  test('oasdiff は版と SHA-256 を固定して取得する', () => {
+    const env = (workflow.jobs['openapi'] as { env?: Record<string, string> } | undefined)?.env ?? {};
+    expect(env['OASDIFF_VERSION']).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(env['OASDIFF_SHA256']).toMatch(/^[0-9a-f]{64}$/);
+  });
+
   test('checkout は認証情報を残さない(persist-credentials: false)', () => {
     const checkouts = allSteps.filter((s) => s.uses?.startsWith('actions/checkout@') === true);
     expect(checkouts.length).toBeGreaterThan(0);

@@ -72,6 +72,7 @@ describe('CODEOWNERS と保護対象の一致', () => {
     '.dependency-cruiser.cjs',
     'vitest.config.ts',
     'tests/playwright.config.ts',
+    'apps/web/src/server/openapi.test.ts',
     'tsconfig.base.json',
     'turbo.json',
     'skills-lock.json',

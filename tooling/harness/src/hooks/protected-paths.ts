@@ -25,6 +25,9 @@ const HARNESS_FILES = new Set([
   '.dependency-cruiser.cjs',
   'vitest.config.ts',
   'tests/playwright.config.ts',
+  // OpenAPI の破壊的変更の検知の前提(apps/web/openapi.json が API の定義と一致すること。ADR-0019)
+  'apps/web/src/server/openapi.ts',
+  'apps/web/src/server/openapi.test.ts',
   'tsconfig.base.json',
   'turbo.json',
   'skills-lock.json',

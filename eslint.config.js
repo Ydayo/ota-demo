@@ -81,6 +81,28 @@ export default tseslint.config(
       'vitest/no-standalone-expect': ['error', { additionalTestBlockFunctions: ['test.prop', 'it.prop'] }],
     },
   },
+  // 憲法 第3条: E2E(Playwright)のテストを止める書き方と、axe の検査の範囲を狭める書き方を禁止する(ADR-0019)
+  {
+    files: ['tests/**/*.spec.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.object.name='test'][callee.property.name=/^(skip|fixme|fail|only)$/]",
+          message: 'テストを止める書き方(test.skip / fixme / fail / only)は禁止です(憲法 第3条)',
+        },
+        {
+          selector:
+            "CallExpression[callee.object.object.name='test'][callee.property.name=/^(skip|fixme|fail|only)$/]",
+          message: 'テストを止める書き方(test.describe.skip など)は禁止です(憲法 第3条)',
+        },
+        {
+          selector: "CallExpression[callee.property.name=/^(disableRules|exclude|include|options)$/]",
+          message: 'axe の検査の範囲を変えることは禁止です。tests/e2e/axe.ts の設定を使ってください(ADR-0019)',
+        },
+      ],
+    },
+  },
   {
     files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     ...tseslint.configs.disableTypeChecked,

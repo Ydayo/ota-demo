@@ -59,8 +59,6 @@
 | `pnpm test:e2e` | E2E(Playwright + axe。`pnpm infra:up` で DB を起動しておく。初回は `pnpm --filter @ota/tests exec playwright install chromium`) |
 | `pnpm mutation` | ミューテーションテスト(Stryker。パッケージごとの閾値。`pnpm mutation <dir>` で1パッケージのみ) |
 
-<!-- 以下はフェーズ0の後続の PR で追加する: pnpm test:e2e / pnpm mutation -->
-
 ## 設計判断の索引
 
 要点のみを示す。**該当する作業をするとき、または判断に迷ったときは、リンク先の ADR を読んでから進めること。**

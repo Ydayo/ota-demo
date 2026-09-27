@@ -29,7 +29,8 @@ const deniedResponses = {
  * 認可ポリシーつきでルートを定義する。ポリシーは省略できない。
  * ポリシーに応じた拒否レスポンス(401/404)を OpenAPI の定義に自動で加える。
  */
-export const defineRoute = <const R extends Omit<RouteConfig, 'middleware'>>(
+// hide は指定できない(OpenAPI 文書から隠すと、破壊的変更の検知をすり抜けるため。ADR-0019)
+export const defineRoute = <const R extends Omit<RouteConfig, 'middleware' | 'hide'> & { readonly hide?: never }>(
   authPolicy: AuthPolicy,
   config: R,
 ) => {

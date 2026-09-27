@@ -28,6 +28,8 @@ describe('保護対象の分類(ADR-0006)', () => {
     ['vitest.config.ts', 'harness'],
     ['tests/playwright.config.ts', 'harness'],
     ['tests/e2e/smoke.spec.ts', undefined],
+    ['apps/web/src/server/openapi.test.ts', 'harness'],
+    ['apps/web/openapi.json', undefined],
     ['packages/modules/booking/stryker.config.mjs', 'harness'],
     ['packages/modules/booking/domain/booking.ts', undefined],
     ['apps/web/src/app/page.tsx', undefined],
