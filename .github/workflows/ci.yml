@@ -1,0 +1,130 @@
+# CI(最終ゲート。ADR-0007)。
+# ルールセット main-protection の必須チェックは、集約ジョブ ci-ok だけにする。
+# ジョブを追加したら ci-ok の needs にも追加すること。
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - run: pnpm typecheck
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - run: pnpm lint
+
+  depcruise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - run: pnpm depcruise
+
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - run: pnpm vitest run --project unit
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      # Testcontainers で PostgreSQL を起動する(GitHub のホストランナーには Docker がある)
+      - run: pnpm test:integration
+
+  # ハーネスの自己テスト(hooks、依存ルール、検査スクリプトが違反を検出できること)
+  harness-self-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - run: pnpm test:harness
+
+  # ハーネスの検査(Route Handler と Server Actions、要件トレーサビリティ、Grilling 記録)
+  harness-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+        with:
+          install: 'false'
+      - run: node tooling/harness/src/checks/run.ts repo
+
+  # PR の分離(ADR-0016): 実装を変更する PR は、仕様・用語集・ADR・憲法と受け入れテストを変更しない
+  pr-separation:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          install: 'false'
+      - env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node tooling/harness/src/checks/run.ts pr-separation --base "$BASE_SHA" --head "$HEAD_SHA"
+
+  # 集約ジョブ。ルールセットの必須チェックはこのジョブだけにする。
+  # 依存ジョブが失敗しても実行し(if がないと skipped になり、必須チェックを通過してしまう)、
+  # すべて成功(pr-separation は push では skipped)のときだけ成功する。
+  # ワークフロー自体がキャンセルされたときは実行しない(必須チェックが満たされず、マージできない)。
+  ci-ok:
+    if: ${{ !cancelled() }}
+    needs:
+      - typecheck
+      - lint
+      - depcruise
+      - unit
+      - integration
+      - harness-self-test
+      - harness-checks
+      - pr-separation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          NEEDS: ${{ toJSON(needs) }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          echo "$NEEDS" | jq -e --arg event "$EVENT" '
+            to_entries
+            | map(select(
+                .value.result != "success"
+                and ((.key == "pr-separation" and $event != "pull_request" and .value.result == "skipped") | not)
+              ))
+            | if length == 0 then true
+              else (map("\(.key): \(.value.result)") | join("\n") | halt_error(1))
+              end
+          '

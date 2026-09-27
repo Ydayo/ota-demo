@@ -49,7 +49,8 @@
 |---|---|
 | `pnpm infra:up` / `pnpm infra:down` | docker compose で PostgreSQL、Mailpit、疑似サプライヤーを起動 / 停止 |
 | `pnpm dev` | Web アプリを起動(http://localhost:3000) |
-| `pnpm check` | 型チェック、lint、依存ルール、単体テストをまとめて実行(PR 前に必ず通す) |
+| `pnpm check` | 型チェック、lint、依存ルール、ハーネスの検査、単体テストをまとめて実行(PR 前に必ず通す) |
+| `pnpm harness` | ハーネスの検査(Route Handler と Server Actions の禁止、要件トレーサビリティ、Grilling 記録) |
 | `pnpm typecheck` | 型チェック(TypeScript 7 の `tsc`) |
 | `pnpm lint` | ESLint |
 | `pnpm depcruise` | 依存ルールの検査 |
