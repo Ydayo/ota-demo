@@ -2,8 +2,28 @@
   "$schema": "https://turborepo.dev/schema.json",
   "tasks": {
     "typecheck": {
-      "dependsOn": ["^typecheck"],
-      "inputs": ["**/*.ts", "**/*.tsx", "tsconfig.json", "$TURBO_ROOT$/tsconfig.base.json"]
+      "dependsOn": [
+        "^typecheck"
+      ],
+      "inputs": [
+        "**/*.ts",
+        "**/*.tsx",
+        "tsconfig.json",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**"
+      ]
     }
   }
 }

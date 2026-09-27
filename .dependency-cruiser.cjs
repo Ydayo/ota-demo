@@ -89,7 +89,7 @@ module.exports = {
   options: {
     doNotFollow: { path: 'node_modules' },
     // node_modules は exclude しない(exclude すると npm パッケージへの依存自体が消え、domain-pure などが検出できなくなる)
-    exclude: { path: ['\\.next/', '\\.turbo/'] },
+    exclude: { path: ['\\.next/', '\\.turbo/', 'next-env\\.d\\.ts$'] },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       exportsFields: ['exports'],

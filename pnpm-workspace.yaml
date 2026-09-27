@@ -10,18 +10,43 @@ catalog:
   "@eslint-community/eslint-plugin-eslint-comments": 4.8.1
   "@eslint/js": 9.39.5
   "@fast-check/vitest": 0.5.0
+  "@hono/node-server": 2.1.1
+  "@hono/zod-openapi": 1.6.3
+  "@testcontainers/postgresql": 12.1.0
   "@types/node": 24.19.0
+  "@types/pg": 8.23.1
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0
   "@typescript/native": npm:typescript@7.0.2
   "@vitest/coverage-v8": 4.1.11
   "@vitest/eslint-plugin": 1.6.27
   dependency-cruiser: 18.4.0
+  drizzle-orm: 0.45.3
+  eslint-config-next: 16.3.6
   eslint: 9.39.5
   fast-check: 4.10.2
   globals: 17.12.0
+  hono: 4.13.9
+  next: 16.3.6
+  pg: 8.23.0
+  pino-pretty: 13.1.3
+  pino: 10.3.1
+  react-dom: 19.3.0
+  react: 19.3.0
+  server-only: 0.0.1
+  testcontainers: 12.1.0
   turbo: 2.11.4
-  typescript: npm:@typescript/typescript6@6.0.2
   typescript-eslint: 8.70.1
+  typescript: npm:@typescript/typescript6@6.0.2
   vitest: 4.1.11
+  zod: 4.6.5
 
+# 依存のビルドスクリプトは許可リストで管理する(pnpm 11 以降は strictDepBuilds が既定)
 allowBuilds:
   esbuild: true
+  # 以下は testcontainers(dockerode → ssh2)と protobufjs の任意のビルド。SSH 接続などは使わないため不要
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
+  # eslint-config-next が使う import resolver。ネイティブバイナリは任意依存で配布されるため postinstall は不要
+  unrs-resolver: false

@@ -1,0 +1,14 @@
+{
+  "name": "@ota/fake-supplier",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.ts",
+    "start": "node src/server.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@hono/node-server": "catalog:",
+    "hono": "catalog:"
+  }
+}

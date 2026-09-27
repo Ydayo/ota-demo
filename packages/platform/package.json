@@ -8,5 +8,18 @@
   "scripts": {
     "typecheck": "tsc -p ."
   },
-  "dependencies": { "@ota/shared": "workspace:*" }
+  "dependencies": {
+    "@hono/zod-openapi": "catalog:",
+    "@ota/shared": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:",
+    "pg": "catalog:",
+    "pino": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "catalog:",
+    "@types/pg": "catalog:",
+    "testcontainers": "catalog:"
+  }
 }
