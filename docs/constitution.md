@@ -36,7 +36,7 @@ CLAUDE.md、ADR、仕様、コードのいずれかがこの憲法と矛盾す�
 
 ### 第6条 依存は外側から内側へ一方向に向ける
 - モジュール間の参照は、各モジュールの公開窓口(`index.ts`)経由に限る。
-- domain は外部に依存しない。application は domain にのみ依存する。
+- domain は同じモジュールの domain と `@ota/shared` にのみ依存する。application は同じモジュールの domain と application、`@ota/shared` にのみ依存する。`@ota/shared` は外部に依存しない。
 - 他モジュールのテーブルを直接読み書きしない。
 - これらは dependency-cruiser で機械的に検査する。
 
@@ -72,4 +72,4 @@ CLAUDE.md、ADR、仕様、コードのいずれかがこの憲法と矛盾す�
 | ゲート | gate | CI で実行され、失敗すればマージを阻止する機械的な検査 |
 | ハーネス | harness | ゲート、hooks、検査スクリプト、閾値設定など、品質を機械的に保証する仕組みの総称 |
 | Grilling | grilling | 変更提案の作成前に、AI が人間に質問を重ねて計画と用語を詰める対話 |
-| 役割 | role | 作業者の担当。spec-author(仕様作成)、test-author(受け入れテスト作成)、implementer(実装)、reviewer(レビュー) |
+| 役割 | role | AI の作業者の担当。spec-author(仕様・用語集・ADR の作成)、test-author(受け入れテスト作成)、implementer(実装)、reviewer(レビュー)、harness(ハーネスの変更)。人間がセッション起動時に `OTA_ROLE` で指定する。どの役割もこの憲法は変更できない |

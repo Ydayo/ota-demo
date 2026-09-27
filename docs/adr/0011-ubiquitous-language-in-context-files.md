@@ -18,10 +18,6 @@
 - 開発プロセスの用語(受け入れテスト、ゲートなど)は業務の用語ではないため、`CONTEXT.md` には置かず、`docs/constitution.md` に定義する。
 - 用語集はロック対象とし(ADR-0006)、変更は人間のレビューを必要とする。
 
-## 注意
-
-- mattpocock/skills では `CONTEXT` を `GLOSSARY` に改名する変更が進行中の可能性がある(2026-09 時点で情報が食い違っている)。スキルを取り込む時点で実際のファイル名を確認し、改名されていればこの ADR を更新する。
-
 ## 検討した選択肢
 
 - `docs/glossary.md` に全コンテキストの用語をまとめる: domain-modeling に書き込み先を毎回指示する必要があり、指示が守られないと書き込み先がずれるため不採用。
@@ -30,3 +26,8 @@
 
 - Grilling の中で、用語集がスキルの改造なしに正しい場所へ更新される。
 - 用語集がコンテキストのコードの隣に置かれ、コンテキストごとの定義という方針がファイル配置に表れる。
+
+## 出典(確認日: 2026-09-27)
+
+- domain-modeling の規約(`CONTEXT.md`、`CONTEXT-MAP.md`、`docs/adr/`)と書式ファイル(`CONTEXT-FORMAT.md`、`ADR-FORMAT.md`): https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling
+- `CONTEXT` を `GLOSSARY` に改名する PR は、マージされずにクローズされた(2026-09-24)。現在の規約は `CONTEXT.md` のまま: https://github.com/mattpocock/skills/pull/876

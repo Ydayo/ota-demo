@@ -15,7 +15,7 @@
 - パッケージ内部の層(domain / application / infrastructure)はディレクトリで分け、dependency-cruiser で依存方向を検査する。
 - パッケージ構成:
   - `packages/modules/<コンテキスト>`: 業務モジュール
-  - `packages/products/<商材>`: 商材ごとの実装
+  - `packages/products/<商材>`: 商材ごとの実装(booking が定義する商材の共通契約を実装する。ADR-0004)
   - `packages/shared`: 共有カーネル(複数コンテキストで同じ意味を持つ値オブジェクトと型、ポートの型)
   - `packages/platform`: 横断的な技術基盤(ADR-0008)
   - `apps/web`: Next.js と Hono(プレゼンテーション層、コンポジションルート)

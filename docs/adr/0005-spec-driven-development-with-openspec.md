@@ -10,7 +10,7 @@
 ## 決定
 
 - 仕様駆動開発ツールとして OpenSpec を採用する。仕様は `openspec/specs/`、変更提案は `openspec/changes/` に置く。
-- 受け入れ条件は EARS 形式で書き、要件IDを付ける。要件IDは要件の見出しに `### Requirement: REQ-BOOKING-001 <要件名>` の形で含める(OpenSpec 1.13 の `validate --strict` を通ることを確認済み)。OpenSpec は MODIFIED / RENAMED の差分を見出し全体で照合するため、要件IDを含む見出しは常に完全一致で書く。
+- 受け入れ条件は EARS 形式で書き、要件IDを付ける。要件IDは要件の見出しに `### Requirement: REQ-BOOKING-001 <要件名>` の形で含める(OpenSpec 1.13.2 の `validate --strict` を通ることをローカルで確認済み)。OpenSpec は MODIFIED / RENAMED の差分を、前後の空白を除いた見出し全体の完全一致(大文字小文字を区別)で照合するため、要件IDを含む見出しは常に完全一致で書く。
 - OpenSpec の標準スキーマ(spec-driven)をプロジェクトに複製したカスタムスキーマ `ota-flow` を使う。
 - proposal と specs の作成前に、Grilling(mattpocock/skills の grill-with-docs と同じ手順: `grilling` スキル → `domain-modeling` スキル)を必ず実行する。grill-with-docs 自体はユーザー起動専用のため、スキーマから同等の2スキルを起動する。
 - Grilling の実行を以下の4層で担保する。
@@ -31,3 +31,12 @@
 
 - 仕様と用語集・ADR が、人間との対話の中で同時に更新される。
 - Grilling を経ていない変更提案は CI で検出される。
+
+## 出典(確認日: 2026-09-27)
+
+- 見出しによる要件の照合(前後の空白を除いて、大文字小文字を区別した完全一致): https://github.com/Fission-AI/OpenSpec/blob/main/openspec/specs/openspec-conventions/spec.md 、 https://github.com/Fission-AI/OpenSpec/blob/main/src/core/parsers/requirement-blocks.ts
+- `validate --strict`(警告も失敗として扱う): https://github.com/Fission-AI/OpenSpec/blob/main/docs-lab/reference/cli.md
+- カスタムスキーマ、`config.yaml` の `context` と `rules`: https://github.com/Fission-AI/OpenSpec/blob/main/docs/customization.md
+- 生成されるスキルは `openspec update` で上書きされる: https://github.com/Fission-AI/OpenSpec/blob/main/docs/supported-tools.md
+- grill-with-docs はユーザー起動専用で、`grilling` と `domain-modeling` を順に呼ぶ: https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md 、 https://github.com/mattpocock/skills/blob/main/docs/engineering/grill-with-docs.md
+- 要件IDを含む見出しが `validate --strict` を通ること: OpenSpec 1.13.2 の CLI をローカルで実行して確認(`### Requirement: REQ-BOOKING-001 ...` の追加差分を検証し、アーカイブ後の仕様の検証も通過)
