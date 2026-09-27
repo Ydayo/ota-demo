@@ -1,0 +1,36 @@
+# OpenSpec のプロジェクト設定(ADR-0005)。
+# context はすべての成果物の作成時に、rules は該当する成果物の作成時に AI へ渡される。
+
+schema: ota-flow
+
+context: |
+  オンライン旅行代理店(OTA)のデモサイト。実際の予約・決済は行わない。コードは AI が書き、人間は仕様・ADR・用語集だけをレビューする。
+  - 最上位の規則は docs/constitution.md(プロジェクト憲法)。必ず従うこと。
+  - 用語は各コンテキストの CONTEXT.md(一覧は CONTEXT-MAP.md)の言葉を使う。用語集にない概念は勝手に命名せず、Grilling で人間に提案する。
+  - 設計判断は docs/adr/(全体)と packages/modules/<コンテキスト>/docs/adr/(コンテキスト固有)にある。関係する ADR を読んでから書くこと。
+  - 境界づけられたコンテキスト: catalog(商品と在庫)、pricing(料金計算)、booking(予約)、payment(決済と返金)、customer(会員情報)。共有カーネルは shared。
+  - 技術: Next.js + Hono(TypeScript)、PostgreSQL + Drizzle、DDD(関数と型中心)、モジュラーモノリス。
+  - 金額は整数の最小通貨単位と通貨コード。日時はタイムゾーン込み。現地の日付と UTC を混同しない。
+  - 仕様・設計・タスクは日本語で書く。
+  - Grilling で使う domain-modeling スキルの書式より、このプロジェクトの規則を優先する:
+    - ADR の書式は ADR-0001 に従う(「背景」「決定」「検討した選択肢」「結果」、外部ツールに依存する判断は「出典」)。ステータス欄は設けない。設計判断は控えめにせず ADR に記録する。
+    - CONTEXT.md の各用語には、日本語の用語、コード上の英語名、定義を必ず書く(ADR-0011)。書式例:
+        **予約(Booking)**:
+        {定義を1〜2文}
+        _Avoid_: 申込, オーダー
+    - ルートには CONTEXT.md を作らない。コンテキストごとの packages/modules/<コンテキスト>/CONTEXT.md と、共有カーネルの packages/shared/CONTEXT.md に書く。
+
+rules:
+  proposal:
+    - 最初に Grilling(`grilling` → `domain-modeling`)を行い、「Grilling 記録」欄に質問と決定事項を記録する。
+    - 未決事項を推測で埋めない。選択肢と推奨を示して人間に確認する(憲法 第10条)。
+  specs:
+    - 要件の見出しは `### Requirement: REQ-<コンテキスト>-<3桁> <要件名>` とする。
+    - 要件の本文は日本語の EARS 形式で書き、文末に `(SHALL)` を付ける。
+    - すべての要件に、テストに落とせる具体的なシナリオを1つ以上書く。正常系だけでなく異常系も書く。
+  design:
+    - 依存ルール(ADR-0004)、DDD の実装スタイル(ADR-0003)、認可ポリシー(ADR-0010)に従う。
+    - 新しい設計判断は ADR として記録する。
+  tasks:
+    - 受け入れテスト(tests/acceptance/、要件IDを参照)の作成を、実装より前のタスクとして置く。受け入れテストは役割 test-author が作成する。
+    - 各タスクには、完了を確かめる方法(テスト、コマンド)を書く。
