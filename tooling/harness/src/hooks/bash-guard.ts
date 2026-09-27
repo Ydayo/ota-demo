@@ -1,17 +1,10 @@
 // Bash コマンドの検査(ADR-0016、憲法 第4条)。
 // ヒューリスティックであり、完全には防げない。最終防衛線は CODEOWNERS・ルールセット・CI。
 
-import {
-  askMessage,
-  classifyPath,
-  DECISION,
-  denyMessage,
-  type PathContext,
-} from './protected-paths.ts';
+import { classifyPath, DECISION, denyMessage, type PathContext } from './protected-paths.ts';
 
 export type Verdict =
   | { readonly decision: 'allow' }
-  | { readonly decision: 'ask'; readonly reason: string }
   | { readonly decision: 'deny'; readonly reason: string };
 
 const ALLOW: Verdict = { decision: 'allow' };
@@ -24,7 +17,7 @@ const FORBIDDEN: readonly { pattern: RegExp; reason: string }[] = [
   },
   {
     pattern: /(^|[;&|(]\s*|\s)(\w+=\S*\s+)*(\S*\/)?claude(\s|$)/,
-    reason: 'Bash から Claude Code を起動することは禁止です(確認ダイアログを迂回できるため。ADR-0016)',
+    reason: 'Bash から Claude Code を起動することは禁止です(別の権限設定の子セッションで hooks の拒否を迂回できるため。ADR-0016)',
   },
   { pattern: /\bgh\s+auth\b/, reason: 'GitHub の認証の操作は禁止です(ADR-0007)' },
 ];
@@ -55,12 +48,10 @@ export const checkBash = (command: string, ctx: PathContext): Verdict => {
     for (const token of tokenize(command)) candidates.add(token);
   }
 
-  let ask: Verdict | undefined;
   for (const target of candidates) {
     const area = classifyPath(target, ctx);
     if (area === undefined) continue;
     if (DECISION[area] === 'deny') return { decision: 'deny', reason: denyMessage(target, area) };
-    ask ??= { decision: 'ask', reason: askMessage(target, area) };
   }
-  return ask ?? ALLOW;
+  return ALLOW;
 };

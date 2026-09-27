@@ -32,8 +32,8 @@ describe('Bash の検査(ADR-0016、憲法 第4条)', () => {
     'cd /repo && echo x > /repo/.github/workflows/ci.yml',
     'echo x > docs/constitution.md',
     'mv a.md docs/constitution.md',
-  ])('確認: %s', (command) => {
-    expect(decide(command)).toBe('ask');
+  ])('保護対象への書き込みはローカルでは止めない(ADR-0017): %s', (command) => {
+    expect(decide(command)).toBe('allow');
   });
 
   test.each([
@@ -50,7 +50,7 @@ describe('Bash の検査(ADR-0016、憲法 第4条)', () => {
     expect(decide(command)).toBe('allow');
   });
 
-  test('拒否の対象が含まれていれば、確認の対象があっても拒否を優先する', () => {
+  test('拒否の対象が含まれていれば、保護対象への書き込みと一緒でも拒否する', () => {
     expect(decide('cp x tests/acceptance/a.test.ts ~/.claude/settings.json')).toBe('deny');
   });
 });

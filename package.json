@@ -16,9 +16,10 @@
     "typecheck": "turbo run typecheck",
     "lint": "eslint . --max-warnings 0",
     "depcruise": "depcruise packages apps --config .dependency-cruiser.cjs",
+    "harness": "node tooling/harness/src/checks/run.ts repo",
     "test": "vitest run --project unit --project harness",
     "test:harness": "vitest run --project harness",
-    "check": "pnpm typecheck && pnpm lint && pnpm depcruise && pnpm test",
+    "check": "pnpm typecheck && pnpm lint && pnpm depcruise && pnpm harness && pnpm test",
     "test:integration": "vitest run --project integration"
   },
   "devDependencies": {

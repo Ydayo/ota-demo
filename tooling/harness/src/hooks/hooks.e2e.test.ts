@@ -19,26 +19,19 @@ const runHook = (script: string, input: unknown, env: Record<string, string> = {
 const edit = (file: string) => ({ tool_name: 'Edit', tool_input: { file_path: `${root}/${file}` } });
 
 describe('PreToolUse hook', () => {
-  const decisionOf = (stdout: string) =>
-    (JSON.parse(stdout) as { hookSpecificOutput: { permissionDecision: string } }).hookSpecificOutput
-      .permissionDecision;
-
-  test('受け入れテストの編集は人間の確認を求める(ask)', () => {
-    const r = runHook('pre-tool-use.ts', edit('tests/acceptance/a.test.ts'));
-    expect(r.status).toBe(0);
-    expect(decisionOf(r.stdout)).toBe('ask');
-  });
+  test.each(['tests/acceptance/a.test.ts', 'docs/constitution.md', 'docs/adr/0017-x.md', '.github/workflows/ci.yml'])(
+    '保護対象 %s の編集は、ローカルでは何も出力せずに通す(ADR-0017)',
+    (file) => {
+      const r = runHook('pre-tool-use.ts', edit(file));
+      expect(r.status).toBe(0);
+      expect(r.stdout).toBe('');
+    },
+  );
 
   test('~/.claude の編集は拒否する(exit 2 と理由)', () => {
     const r = runHook('pre-tool-use.ts', { tool_name: 'Write', tool_input: { file_path: '~/.claude/settings.json' } });
     expect(r.status).toBe(2);
     expect(r.stderr).toContain('docs/adr/0016');
-  });
-
-  test('憲法の編集は人間の確認を求める(ask)', () => {
-    const r = runHook('pre-tool-use.ts', edit('docs/constitution.md'));
-    expect(r.status).toBe(0);
-    expect(decisionOf(r.stdout)).toBe('ask');
   });
 
   test('実装ファイルの編集は何も出力せずに通す', () => {
@@ -52,10 +45,10 @@ describe('PreToolUse hook', () => {
     expect(r.status).toBe(2);
   });
 
-  test('Bash で保護対象に書き込むときは確認を求める', () => {
+  test('Bash で保護対象に書き込むときも、ローカルでは何も出力せずに通す(ADR-0017)', () => {
     const r = runHook('pre-tool-use.ts', { tool_name: 'Bash', tool_input: { command: 'echo x > openspec/specs/a.md' } });
     expect(r.status).toBe(0);
-    expect(decisionOf(r.stdout)).toBe('ask');
+    expect(r.stdout).toBe('');
   });
 
   test('Read などの読み取りは対象外', () => {

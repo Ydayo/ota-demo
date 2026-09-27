@@ -1,0 +1,28 @@
+# 保護対象(ADR-0006、ADR-0015、ADR-0016)の変更には、人間(@Ydayo)の承認を必須にする。
+# 対象は tooling/harness/src/hooks/protected-paths.ts の分類と一致させる(tooling/harness/src/checks/codeowners.test.ts が検査する)。
+
+# 仕様・用語集・ADR(openspec/schemas と openspec/config.yaml はハーネスだが、同じく人間の承認が必要)
+/openspec/ @Ydayo
+/CONTEXT-MAP.md @Ydayo
+CONTEXT.md @Ydayo
+**/docs/adr/ @Ydayo
+
+# 憲法
+/docs/constitution.md @Ydayo
+
+# 受け入れテスト
+/tests/acceptance/ @Ydayo
+
+# ハーネス
+/.claude/ @Ydayo
+/.github/ @Ydayo
+/tooling/harness/ @Ydayo
+CLAUDE.md @Ydayo
+CLAUDE.local.md @Ydayo
+/eslint.config.js @Ydayo
+/.dependency-cruiser.cjs @Ydayo
+/vitest.config.ts @Ydayo
+/tsconfig.base.json @Ydayo
+/turbo.json @Ydayo
+/skills-lock.json @Ydayo
+stryker.config.* @Ydayo
