@@ -43,16 +43,15 @@
 
 ## コマンド
 
-<!-- フェーズ0の実装完了時に確定する -->
-
 | コマンド | 内容 |
 |---|---|
-| `pnpm setup` | docker compose の起動、マイグレーション、シード投入 |
-| `pnpm dev` | アプリの起動 |
-| `pnpm check` | 型、lint、依存ルール、単体テストをまとめて実行 |
-| `pnpm test:integration` | 結合テスト(Testcontainers) |
-| `pnpm test:e2e` | E2E テスト(Playwright) |
-| `pnpm mutation` | ミューテーションテスト |
+| `pnpm check` | 型チェック、lint、依存ルール、テストをまとめて実行(PR 前に必ず通す) |
+| `pnpm typecheck` | 型チェック(TypeScript 7 の `tsc`) |
+| `pnpm lint` | ESLint |
+| `pnpm depcruise` | 依存ルールの検査 |
+| `pnpm test` | 単体テストとハーネスの自己テスト |
+
+<!-- 以下はフェーズ0の後続の PR で追加する: pnpm setup / pnpm dev / pnpm test:integration / pnpm test:e2e / pnpm mutation -->
 
 ## 設計判断の索引
 
@@ -70,3 +69,4 @@
 - API ルートは `defineRoute` で定義し、認可ポリシーを宣言する。Route Handler の追加と Server Actions は禁止 → [ADR-0010](docs/adr/0010-authorization-policy-declaration.md)
 - 用語はコンテキストごとの `CONTEXT.md` に従う → [ADR-0011](docs/adr/0011-ubiquitous-language-in-context-files.md)
 - 最新メジャー版を見送るツールがある(ESLint、Vitest、Drizzle)。勝手に上げない → [ADR-0012](docs/adr/0012-technology-stack-and-versions.md)
+- 人間が承認した PR は、承認されたコミットの SHA を指定して bot がマージする → [ADR-0013](docs/adr/0013-bot-merges-human-approved-pull-requests.md)

@@ -1,0 +1,12 @@
+{
+  "name": "@ota/platform",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": { "@ota/shared": "workspace:*" }
+}

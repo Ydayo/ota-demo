@@ -1,0 +1,12 @@
+{
+  "name": "@ota/customer",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": { "@ota/shared": "workspace:*" }
+}

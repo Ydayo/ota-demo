@@ -1,0 +1,37 @@
+{
+  "name": "ota-demo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
+  "volta": {
+    "node": "24.21.0"
+  },
+  "scripts": {
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings 0",
+    "depcruise": "depcruise packages apps --config .dependency-cruiser.cjs",
+    "test": "vitest run",
+    "test:harness": "vitest run --project harness",
+    "check": "pnpm typecheck && pnpm lint && pnpm depcruise && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "catalog:",
+    "@eslint/js": "catalog:",
+    "@fast-check/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "@typescript/native": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@vitest/eslint-plugin": "catalog:",
+    "dependency-cruiser": "catalog:",
+    "eslint": "catalog:",
+    "fast-check": "catalog:",
+    "globals": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  }
+}

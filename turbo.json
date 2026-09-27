@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "tasks": {
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": ["**/*.ts", "**/*.tsx", "tsconfig.json", "$TURBO_ROOT$/tsconfig.base.json"]
+    }
+  }
+}

@@ -1,0 +1,78 @@
+import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
+import js from '@eslint/js';
+import vitest from '@vitest/eslint-plugin';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/.turbo/**',
+      '**/coverage/**',
+      '**/reports/**',
+      '**/.stryker-tmp/**',
+      'tooling/harness/fixtures/**',
+    ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  {
+    languageOptions: {
+      globals: { ...globals.node },
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ['*.js', '*.cjs', '*.mjs', '*.ts'],
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
+    },
+    rules: {
+      // 憲法 第4条: any と型チェックの抑制を禁止する
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        {
+          'ts-ignore': true,
+          'ts-nocheck': true,
+          'ts-check': false,
+          'ts-expect-error': 'allow-with-description',
+          minimumDescriptionLength: 10,
+        },
+      ],
+      '@typescript-eslint/consistent-type-imports': 'error',
+      // ADR-0003: 関数と型中心のスタイル。データは type で表す
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+    },
+  },
+  // 憲法 第4条: eslint-disable には理由を必須にする
+  comments.recommended,
+  {
+    rules: {
+      '@eslint-community/eslint-comments/require-description': ['error', { ignore: [] }],
+      '@eslint-community/eslint-comments/no-unlimited-disable': 'error',
+    },
+  },
+  // 憲法 第3条: テストを弱めない(.only / .skip / .todo の放置を禁止)
+  {
+    files: ['**/*.test.ts', '**/*.spec.ts'],
+    plugins: { vitest },
+    rules: {
+      ...vitest.configs.recommended.rules,
+      'vitest/no-focused-tests': 'error',
+      'vitest/no-disabled-tests': 'error',
+      'vitest/warn-todo': 'error',
+      // @fast-check/vitest の test.prop もテストブロックとして扱う
+      'vitest/no-standalone-expect': ['error', { additionalTestBlockFunctions: ['test.prop', 'it.prop'] }],
+    },
+  },
+  {
+    files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
+    ...tseslint.configs.disableTypeChecked,
+  },
+);
