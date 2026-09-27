@@ -1,9 +1,11 @@
 # CLAUDE.md
 
 オンライン旅行代理店(OTA)のデモサイト。実際の予約・決済は行わない。
-コードは AI が書き、人間はコード差分をレビューしない。品質は機械的なゲートで保証する。
+コードは AI が書き、人間はコード差分をレビューしない。品質は機械的なゲート(CI)で保証する。
 
-**最初に [docs/constitution.md](docs/constitution.md)(プロジェクト憲法)を読むこと。** この文書より憲法が優先する。
+## プロジェクト憲法(最優先)
+
+@docs/constitution.md
 
 ## 言語
 
@@ -29,13 +31,15 @@
 
 ## 開発の流れ
 
-1. **変更提案**(役割: spec-author): `/opsx:propose`。proposal と specs の前に必ず Grilling(`grilling` → `domain-modeling`)を行う。
-2. **受け入れテスト**(役割: test-author): 仕様の要件IDごとにテストを書く。この時点ではテストは失敗する。
-3. **実装**(役割: implementer): 受け入れテストが通るように実装する。仕様と受け入れテストは変更しない。
-4. **レビュー**(役割: reviewer): `reviewer` サブエージェントに仕様と差分だけを渡してレビューさせる。
-5. **ゲート**: ローカルで `pnpm check` を通し、PR を作る。最終判定は CI。
+1. 変更提案(spec-author): `/opsx:propose`。proposal と specs の前に Grilling を行う。
+2. 受け入れテスト(test-author): 要件IDごとにテストを書く。
+3. 実装(implementer): 受け入れテストが通るように実装する。
+4. レビュー(reviewer): `reviewer` サブエージェントに仕様と差分だけを渡す。
+5. ゲート: ローカルで `pnpm check` を通して PR を作る。最終判定は CI。
 
-役割は人間がセッション起動時に環境変数 `OTA_ROLE` で指定する(未指定は implementer)。役割外のパスへの書き込みは hook でブロックされる。ブロックされた場合は迂回せず、作業を止めて人間に報告する。
+- 役割は人間がセッション起動時に `OTA_ROLE` で指定する(未指定は implementer)。
+- hook やゲートにブロックされたら、迂回せずに作業を止めて人間に報告する。
+- テスト名には、検証する要件IDを含める(例: `test('REQ-BOOKING-012: ...')`)。
 
 ## コマンド
 
@@ -46,15 +50,23 @@
 | `pnpm setup` | docker compose の起動、マイグレーション、シード投入 |
 | `pnpm dev` | アプリの起動 |
 | `pnpm check` | 型、lint、依存ルール、単体テストをまとめて実行 |
-| `pnpm test` | 単体テスト |
 | `pnpm test:integration` | 結合テスト(Testcontainers) |
 | `pnpm test:e2e` | E2E テスト(Playwright) |
 | `pnpm mutation` | ミューテーションテスト |
 
-## 実装の約束ごと(詳細は憲法と ADR)
+## 設計判断の索引
 
-- DDD は関数と型で書く。値オブジェクトはスマートコンストラクタ、状態遷移は判別共用体、エラーは `Result`(ADR-0003、ADR-0009)。
-- 依存ルールは dependency-cruiser が検査する(ADR-0004)。
-- API ルートは `defineRoute` で定義し、認可ポリシーを必ず宣言する(ADR-0010)。
-- テストには、検証する要件IDを書く(例: `test('REQ-BOOKING-012: ...')`)。
-- 未決事項や、決まっていない判断が必要になったら、推測で進めずに選択肢と推奨を示して相談する。
+要点のみを示す。**該当する作業をするとき、または判断に迷ったときは、リンク先の ADR を読んでから進めること。**
+
+- ADR は影響範囲でルートかモジュールの `docs/adr/` に置き、承認済みは書き換えない → [ADR-0001](docs/adr/0001-record-architecture-decisions.md)
+- コンテキストごとに1パッケージ、公開は `index.ts` のみ → [ADR-0002](docs/adr/0002-monorepo-and-package-granularity.md)
+- DDD は関数と型で書く。状態遷移は判別共用体、遷移関数はイベントを返す → [ADR-0003](docs/adr/0003-functional-domain-modeling-style.md)
+- 依存ルールは dependency-cruiser が検査する → [ADR-0004](docs/adr/0004-module-dependency-rules.md)
+- 仕様は OpenSpec、要件IDは要件の見出しに含める → [ADR-0005](docs/adr/0005-spec-driven-development-with-openspec.md)
+- 役割ごとの書き込みロック → [ADR-0006](docs/adr/0006-write-locks-for-specs-and-acceptance-tests.md)
+- 最終ゲートは CI、PR は bot アカウントで作る → [ADR-0007](docs/adr/0007-ci-as-final-gate-with-bot-account.md)
+- 横断的な技術基盤は `@ota/platform`(infrastructure と apps のみ参照可) → [ADR-0008](docs/adr/0008-platform-package-for-cross-cutting-concerns.md)
+- 業務上のエラーは `Result` で返す → [ADR-0009](docs/adr/0009-result-type-for-domain-errors.md)
+- API ルートは `defineRoute` で定義し、認可ポリシーを宣言する → [ADR-0010](docs/adr/0010-authorization-policy-declaration.md)
+- 用語はコンテキストごとの `CONTEXT.md` に従う → [ADR-0011](docs/adr/0011-ubiquitous-language-in-context-files.md)
+- 最新メジャー版を見送るツールがある(ESLint、Vitest、Drizzle)。勝手に上げない → [ADR-0012](docs/adr/0012-technology-stack-and-versions.md)
