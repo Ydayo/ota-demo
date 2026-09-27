@@ -45,13 +45,16 @@
 
 | コマンド | 内容 |
 |---|---|
-| `pnpm check` | 型チェック、lint、依存ルール、テストをまとめて実行(PR 前に必ず通す) |
+| `pnpm infra:up` / `pnpm infra:down` | docker compose で PostgreSQL、Mailpit、疑似サプライヤーを起動 / 停止 |
+| `pnpm dev` | Web アプリを起動(http://localhost:3000) |
+| `pnpm check` | 型チェック、lint、依存ルール、単体テストをまとめて実行(PR 前に必ず通す) |
 | `pnpm typecheck` | 型チェック(TypeScript 7 の `tsc`) |
 | `pnpm lint` | ESLint |
 | `pnpm depcruise` | 依存ルールの検査 |
 | `pnpm test` | 単体テストとハーネスの自己テスト |
+| `pnpm test:integration` | 結合テスト(Testcontainers。Docker が必要) |
 
-<!-- 以下はフェーズ0の後続の PR で追加する: pnpm setup / pnpm dev / pnpm test:integration / pnpm test:e2e / pnpm mutation -->
+<!-- 以下はフェーズ0の後続の PR で追加する: pnpm test:e2e / pnpm mutation -->
 
 ## 設計判断の索引
 
@@ -67,6 +70,7 @@
 - 横断的な技術基盤は `@ota/platform`(infrastructure と apps のみ参照可) → [ADR-0008](docs/adr/0008-platform-package-for-cross-cutting-concerns.md)
 - 業務上のエラーは `Result` で返す → [ADR-0009](docs/adr/0009-result-type-for-domain-errors.md)
 - API ルートは `defineRoute` で定義し、認可ポリシーを宣言する。Route Handler の追加と Server Actions は禁止 → [ADR-0010](docs/adr/0010-authorization-policy-declaration.md)
+- 他のユーザーのリソースへのアクセスには、存在しない場合と同じ 404 を返す → [ADR-0014](docs/adr/0014-not-found-for-other-users-resources.md)
 - 用語はコンテキストごとの `CONTEXT.md` に従う → [ADR-0011](docs/adr/0011-ubiquitous-language-in-context-files.md)
 - 最新メジャー版を見送るツールがある(ESLint、Vitest、Drizzle)。勝手に上げない → [ADR-0012](docs/adr/0012-technology-stack-and-versions.md)
 - 人間が承認した PR は、承認されたコミットの SHA を指定して bot がマージする → [ADR-0013](docs/adr/0013-bot-merges-human-approved-pull-requests.md)

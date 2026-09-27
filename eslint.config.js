@@ -1,6 +1,7 @@
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import js from '@eslint/js';
 import vitest from '@vitest/eslint-plugin';
+import nextVitals from 'eslint-config-next/core-web-vitals';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -13,6 +14,7 @@ export default tseslint.config(
       '**/coverage/**',
       '**/reports/**',
       '**/.stryker-tmp/**',
+      '**/next-env.d.ts',
       'tooling/harness/fixtures/**',
     ],
   },
@@ -49,6 +51,12 @@ export default tseslint.config(
       // ADR-0003: 関数と型中心のスタイル。データは type で表す
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
     },
+  },
+  // Next.js(apps/web のみ)
+  ...nextVitals.map((config) => ({ ...config, files: ['apps/web/**/*.{ts,tsx}'] })),
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    settings: { next: { rootDir: 'apps/web' } },
   },
   // 憲法 第4条: eslint-disable には理由を必須にする
   comments.recommended,

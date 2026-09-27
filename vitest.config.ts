@@ -12,6 +12,15 @@ export default defineConfig({
       },
       {
         test: {
+          name: 'integration',
+          include: ['packages/**/*.integration.test.ts', 'apps/**/*.integration.test.ts'],
+          exclude: ['**/node_modules/**'],
+          testTimeout: 120_000,
+          hookTimeout: 180_000,
+        },
+      },
+      {
+        test: {
           name: 'harness',
           include: ['tooling/harness/**/*.test.ts'],
           exclude: ['**/node_modules/**', 'tooling/harness/fixtures/**'],
