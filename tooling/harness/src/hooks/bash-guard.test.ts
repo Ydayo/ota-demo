@@ -15,8 +15,6 @@ describe('Bash の検査(ADR-0016、憲法 第4条)', () => {
     'OTA_ROLE=harness claude',
     '/usr/local/bin/claude --help',
     'gh auth login',
-    'echo x > docs/constitution.md',
-    'mv a.md docs/constitution.md',
     'echo x > ~/.claude/settings.json',
   ])('拒否: %s', (command) => {
     expect(decide(command)).toBe('deny');
@@ -32,6 +30,8 @@ describe('Bash の検査(ADR-0016、憲法 第4条)', () => {
     'git checkout -- tests/acceptance/a.test.ts',
     "python3 -c \"open('eslint.config.js','w')\"",
     'cd /repo && echo x > /repo/.github/workflows/ci.yml',
+    'echo x > docs/constitution.md',
+    'mv a.md docs/constitution.md',
   ])('確認: %s', (command) => {
     expect(decide(command)).toBe('ask');
   });
@@ -51,6 +51,6 @@ describe('Bash の検査(ADR-0016、憲法 第4条)', () => {
   });
 
   test('拒否の対象が含まれていれば、確認の対象があっても拒否を優先する', () => {
-    expect(decide('cp x tests/acceptance/a.test.ts docs/constitution.md')).toBe('deny');
+    expect(decide('cp x tests/acceptance/a.test.ts ~/.claude/settings.json')).toBe('deny');
   });
 });

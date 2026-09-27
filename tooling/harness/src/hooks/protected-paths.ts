@@ -6,7 +6,7 @@ export type ProtectedArea =
   | 'spec' // 仕様・用語集・ADR
   | 'acceptance-test' // 受け入れテスト
   | 'harness' // hooks、CI、検査スクリプト、閾値設定、CLAUDE.md、OpenSpec のスキーマ
-  | 'constitution' // 憲法
+  | 'constitution' // 憲法(ADR-0016 により、他の保護対象と同じく人間の確認で変更できる)
   | 'user-claude-config'; // ~/.claude
 
 export type Decision = 'ask' | 'deny';
@@ -15,7 +15,7 @@ export const DECISION: Record<ProtectedArea, Decision> = {
   spec: 'ask',
   'acceptance-test': 'ask',
   harness: 'ask',
-  constitution: 'deny',
+  constitution: 'ask',
   'user-claude-config': 'deny',
 };
 
@@ -92,7 +92,6 @@ export const askMessage = (target: string, area: ProtectedArea): string =>
 export const denyMessage = (target: string, area: ProtectedArea): string =>
   [
     `${AREA_LABEL[area]}は AI が変更できません: ${target}`,
-    area === 'constitution' ? '憲法の変更は人間が GitHub 上で行います(ADR-0007)。' : '',
     '迂回せずに作業を止め、人間に報告してください。',
     `根拠: ${ADR_PROTECTION}`,
   ]

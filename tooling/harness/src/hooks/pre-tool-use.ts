@@ -1,6 +1,6 @@
 // PreToolUse hook(ADR-0016):
 // - 保護対象への書き込みは、Claude Code の確認ダイアログで人間に毎回確認する(ask)
-// - 憲法と ~/.claude への書き込み、ゲートの迂回は常に拒否する(deny)
+// - ~/.claude への書き込みと、ゲートの迂回は常に拒否する(deny)
 
 import { checkBash } from './bash-guard.ts';
 import { block, pathContext, readInput, str } from './io.ts';

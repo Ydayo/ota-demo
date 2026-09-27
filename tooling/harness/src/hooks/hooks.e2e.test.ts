@@ -29,10 +29,16 @@ describe('PreToolUse hook', () => {
     expect(decisionOf(r.stdout)).toBe('ask');
   });
 
-  test('憲法の編集は拒否する(exit 2 と理由)', () => {
-    const r = runHook('pre-tool-use.ts', edit('docs/constitution.md'));
+  test('~/.claude の編集は拒否する(exit 2 と理由)', () => {
+    const r = runHook('pre-tool-use.ts', { tool_name: 'Write', tool_input: { file_path: '~/.claude/settings.json' } });
     expect(r.status).toBe(2);
     expect(r.stderr).toContain('docs/adr/0016');
+  });
+
+  test('憲法の編集は人間の確認を求める(ask)', () => {
+    const r = runHook('pre-tool-use.ts', edit('docs/constitution.md'));
+    expect(r.status).toBe(0);
+    expect(decisionOf(r.stdout)).toBe('ask');
   });
 
   test('実装ファイルの編集は何も出力せずに通す', () => {
