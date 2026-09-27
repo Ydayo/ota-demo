@@ -4,8 +4,9 @@ import { resolve } from 'node:path';
 
 import { describe, expect, test } from 'vitest';
 
+import vitestConfig from '../../../../vitest.config.ts';
 import { materialize, type Fixture } from './fixture.ts';
-import { checkTraceability } from './traceability.ts';
+import { ACCEPTANCE_TEST_GLOB, checkTraceability } from './traceability.ts';
 
 const violations = (fixture: Fixture) =>
   checkTraceability(materialize(fixture)).map((v) => ({ file: v.file, message: v.message }));
@@ -47,15 +48,41 @@ describe('要件トレーサビリティの検査', () => {
     ).toEqual([]);
   });
 
-  test('describe や test.describe のテスト名、二重引用符・テンプレート文字列も認める', () => {
+  test('describe や test.describe の名前は中のテストに引き継ぐ。二重引用符・テンプレート文字列も認める', () => {
     expect(
       violations({
         [SPEC]: spec('REQ-BOOKING-001', 'REQ-BOOKING-002', 'REQ-BOOKING-003'),
         [TEST]: [
-          'test.describe("REQ-BOOKING-001: 予約", () => {});',
-          'describe(`REQ-BOOKING-002: 取消`, () => {});',
+          'test.describe("REQ-BOOKING-001: 予約", () => { test("正常系", async () => {}); });',
+          "describe(`REQ-BOOKING-002: 取消`, () => { describe('入れ子', () => { it('a', () => {}); }); });",
           "it('REQ-BOOKING-003: 変更', async () => {});",
         ].join('\n'),
+      }),
+    ).toEqual([]);
+  });
+
+  test('受け入れテストの対象ファイルは vitest.config.ts の acceptance と一致する', () => {
+    const projects = (vitestConfig.test?.projects ?? []) as { test?: { name?: string; include?: string[] } }[];
+    const acceptanceProject = projects.find((p) => p.test?.name === 'acceptance');
+    expect(acceptanceProject?.test?.include).toEqual([ACCEPTANCE_TEST_GLOB]);
+  });
+
+  test.each(['tests/acceptance/a.spec.ts', 'tests/acceptance/a.test.tsx', 'tests/acceptance/helpers.ts'])(
+    'CI が実行しないファイル %s のテストは数えず、違反として報告する',
+    (file) => {
+      expect(violations({ [SPEC]: spec('REQ-BOOKING-001'), [file]: acceptance('REQ-BOOKING-001: a') })).toEqual([
+        { file, message: expect.stringContaining('CI が実行しないファイル') as string },
+        { file: SPEC, message: expect.stringContaining('REQ-BOOKING-001') as string },
+      ]);
+    },
+  );
+
+  test('テストを含まない補助ファイルは、要件IDを参照していてもよい', () => {
+    expect(
+      violations({
+        [SPEC]: spec('REQ-BOOKING-001'),
+        [TEST]: acceptance('REQ-BOOKING-001: a'),
+        'tests/acceptance/helpers.ts': "export const id = 'REQ-BOOKING-001';\n",
       }),
     ).toEqual([]);
   });
@@ -72,7 +99,7 @@ describe('要件トレーサビリティの検査', () => {
         [SPEC]: spec('REQ-BOOKING-001', 'REQ-BOOKING-002'),
         [TEST]: [
           "test.each([1, 2])('REQ-BOOKING-001: %s 泊', () => {});",
-          "const t = it('REQ-BOOKING-002: b', () => {});",
+          "const t = it('REQ-BOOKING-002: b', { skip: false, timeout: 1000 }, () => {});",
         ].join('\n'),
       }),
     ).toEqual([]);
@@ -87,6 +114,15 @@ describe('要件トレーサビリティの検査', () => {
     ['test.todo', "test.todo('REQ-BOOKING-001: a');\n"],
     ['test.fixme(Playwright)', "test.fixme('REQ-BOOKING-001: a', async () => {});\n"],
     ['test.skipIf', "test.skipIf(true)('REQ-BOOKING-001: a', () => {});\n"],
+    ['test.fails', "test.fails('REQ-BOOKING-001: a', () => {});\n"],
+    ['describe.skip の中', "describe.skip('予約', () => { test('REQ-BOOKING-001: a', () => {}); });\n"],
+    ['test.describe.fixme の中', "test.describe.fixme('予約', () => { test('REQ-BOOKING-001: a', () => {}); });\n"],
+    ['オプションの skip', "test('REQ-BOOKING-001: a', { skip: true }, () => {});\n"],
+    ['オプションの todo(省略記法)', "const todo = true;\ntest('REQ-BOOKING-001: a', { todo }, () => {});\n"],
+    ['本体での test.skip()', "test('REQ-BOOKING-001: a', async () => { test.skip(); });\n"],
+    ['describe の本体での test.fixme()', "test.describe('REQ-BOOKING-001', () => { test.fixme(); test('a', () => {}); });\n"],
+    ['中にテストのない describe', "describe('REQ-BOOKING-001: a', () => {});\n"],
+    ['テストではない test.step', "test('予約', async () => { await test.step('REQ-BOOKING-001: a', () => {}); });\n"],
     ['テスト以外の関数', "check('REQ-BOOKING-001: a');\n"],
   ])('実行されるテストがあるとはみなさない: %s', (_, content) => {
     expect(violations({ [SPEC]: spec('REQ-BOOKING-001'), [TEST]: content })).toEqual([
@@ -141,6 +177,30 @@ describe('要件トレーサビリティの検査', () => {
         ),
       }),
     ).toEqual([{ file: TEST, message: expect.stringContaining('REQ-BOOKING-012') as string }]);
+  });
+
+  test('差分の節の見出しの大文字小文字と、RENAMED の行頭の記号の違いを OpenSpec と同じく許す', () => {
+    expect(
+      violations({
+        'openspec/changes/x/specs/booking/spec.md': [
+          '## Added Requirements',
+          '### Requirement: REQ-BOOKING-010 取り消す',
+          '## renamed requirements',
+          '* FROM: `### Requirement: REQ-BOOKING-001 旧名`',
+          'TO: `###Requirement: REQ-BOOKING-011 新名`',
+        ].join('\n'),
+        [TEST]: acceptance('REQ-BOOKING-010: a', 'REQ-BOOKING-011: b'),
+      }),
+    ).toEqual([]);
+  });
+
+  test('コードブロックの中の要件の見出しは、OpenSpec と同じく無視する', () => {
+    expect(
+      violations({
+        [SPEC]: `${spec('REQ-BOOKING-001')}\n\`\`\`md\n### Requirement: 例\n### Requirement: REQ-BOOKING-002 例\n\`\`\`\n`,
+        [TEST]: acceptance('REQ-BOOKING-001: a'),
+      }),
+    ).toEqual([]);
   });
 
   test('archive 済みの変更提案の要件IDは、存在する要件IDとみなさない', () => {

@@ -70,7 +70,9 @@ describe('run.ts pr-separation', () => {
   test('依存(node_modules)のない場所に置いたスクリプトからでも実行できる(CI は base 側の worktree から実行する)', () => {
     const repo = repoWith({ 'packages/shared/src/a.ts': 'x\n', 'tests/acceptance/a.test.ts': 'x\n' });
     const copy = mkdtempSync(join(tmpdir(), 'ota-harness-copy-'));
+    // CI の base 側の worktree と同じ配置(tooling/harness の package.json と src。node_modules はない)
     cpSync(resolve(import.meta.dirname, '..'), join(copy, 'tooling/harness/src'), { recursive: true });
+    cpSync(resolve(import.meta.dirname, '../../package.json'), join(copy, 'tooling/harness/package.json'));
     const r = spawnSync(
       process.execPath,
       [join(copy, 'tooling/harness/src/checks/run.ts'), 'pr-separation', '--root', repo, '--base', 'main', '--head', 'feature'],
