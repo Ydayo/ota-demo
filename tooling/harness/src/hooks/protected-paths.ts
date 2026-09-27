@@ -1,21 +1,22 @@
-// 保護対象と、書き込み時の扱い(ADR-0016)。
-// - ask: Claude Code の確認ダイアログで人間が毎回許可する
+// 保護対象と、書き込み時の扱い(ADR-0016、ADR-0017)。
+// - allow: ローカルでは止めない。PR のレビュー、CODEOWNERS、CI の PR の分離の検査で守る(ADR-0017)
 // - deny: どんな場合も AI には書き込ませない
+// 分類そのものは、CI の PR の分離の検査と CODEOWNERS の一致の検査でも使う。
 
 export type ProtectedArea =
   | 'spec' // 仕様・用語集・ADR
   | 'acceptance-test' // 受け入れテスト
   | 'harness' // hooks、CI、検査スクリプト、閾値設定、CLAUDE.md、OpenSpec のスキーマ
-  | 'constitution' // 憲法(ADR-0016 により、他の保護対象と同じく人間の確認で変更できる)
+  | 'constitution' // 憲法(ADR-0016 により、他の保護対象と同じく PR で人間が承認して変更する)
   | 'user-claude-config'; // ~/.claude
 
-export type Decision = 'ask' | 'deny';
+export type Decision = 'allow' | 'deny';
 
 export const DECISION: Record<ProtectedArea, Decision> = {
-  spec: 'ask',
-  'acceptance-test': 'ask',
-  harness: 'ask',
-  constitution: 'ask',
+  spec: 'allow',
+  'acceptance-test': 'allow',
+  harness: 'allow',
+  constitution: 'allow',
   'user-claude-config': 'deny',
 };
 
@@ -51,7 +52,8 @@ export const classifyRelative = (rel: string): ProtectedArea | undefined => {
     base === 'CLAUDE.md' ||
     base === 'CLAUDE.local.md' ||
     HARNESS_FILES.has(path) ||
-    /(^|\/)stryker\.config\.[cm]?[jt]s$/.test(path)
+    // CODEOWNERS の stryker.config.* と範囲を揃える
+    /(^|\/)stryker\.config\.[^/]+$/.test(path)
   ) {
     return 'harness';
   }
@@ -85,9 +87,6 @@ const AREA_LABEL: Record<ProtectedArea, string> = {
   constitution: '憲法',
   'user-claude-config': 'ユーザーの Claude Code 設定',
 };
-
-export const askMessage = (target: string, area: ProtectedArea): string =>
-  `保護対象(${AREA_LABEL[area]})への書き込みです: ${target}。人間の確認が必要です(${ADR_PROTECTION})。`;
 
 export const denyMessage = (target: string, area: ProtectedArea): string =>
   [

@@ -66,13 +66,43 @@ describe('要件トレーサビリティの検査', () => {
     ).toEqual([{ file: SPEC, message: expect.stringContaining('REQ-BOOKING-002') as string }]);
   });
 
-  test('要件IDがテスト名ではなくコメントにあるだけなら、テストがあるとはみなさない', () => {
+  test('test.each(...) と、変数に代入したテストのテスト名も認める', () => {
     expect(
       violations({
-        [SPEC]: spec('REQ-BOOKING-001'),
-        [TEST]: "// REQ-BOOKING-001\nimport { test } from 'vitest';\ntest('予約できる', () => {});\n",
+        [SPEC]: spec('REQ-BOOKING-001', 'REQ-BOOKING-002'),
+        [TEST]: [
+          "test.each([1, 2])('REQ-BOOKING-001: %s 泊', () => {});",
+          "const t = it('REQ-BOOKING-002: b', () => {});",
+        ].join('\n'),
       }),
-    ).toEqual([{ file: SPEC, message: expect.stringContaining('REQ-BOOKING-001') as string }]);
+    ).toEqual([]);
+  });
+
+  test.each([
+    ['コメントの要件ID', "// REQ-BOOKING-001\ntest('予約できる', () => {});\n"],
+    ['行コメントの中のテスト', "// test('REQ-BOOKING-001: a', () => {});\n"],
+    ['ブロックコメントの中のテスト', "/*\ntest('REQ-BOOKING-001: a', () => {});\n*/\n"],
+    ['test.skip', "test.skip('REQ-BOOKING-001: a', () => {});\n"],
+    ['describe.skip', "describe.skip('REQ-BOOKING-001: a', () => {});\n"],
+    ['test.todo', "test.todo('REQ-BOOKING-001: a');\n"],
+    ['test.fixme(Playwright)', "test.fixme('REQ-BOOKING-001: a', async () => {});\n"],
+    ['test.skipIf', "test.skipIf(true)('REQ-BOOKING-001: a', () => {});\n"],
+    ['テスト以外の関数', "check('REQ-BOOKING-001: a');\n"],
+  ])('実行されるテストがあるとはみなさない: %s', (_, content) => {
+    expect(violations({ [SPEC]: spec('REQ-BOOKING-001'), [TEST]: content })).toEqual([
+      { file: SPEC, message: expect.stringContaining('REQ-BOOKING-001') as string },
+    ]);
+  });
+
+  test('業務上のディレクトリ名(reports、coverage など)の下も検査する', () => {
+    expect(
+      violations({
+        'openspec/specs/reports/spec.md': spec('REQ-REPORT-001'),
+        'tests/acceptance/coverage/a.test.ts': acceptance('REQ-REPORT-001: a', 'REQ-REPORT-999: b'),
+      }),
+    ).toEqual([
+      { file: 'tests/acceptance/coverage/a.test.ts', message: expect.stringContaining('REQ-REPORT-999') as string },
+    ]);
   });
 
   test('存在しない要件IDを参照するテストを検出する(テスト名以外の参照も含む)', () => {
@@ -123,16 +153,34 @@ describe('要件トレーサビリティの検査', () => {
     ).toEqual([{ file: TEST, message: expect.stringContaining('REQ-BOOKING-001') as string }]);
   });
 
-  test('要件IDのない要件の見出しを検出する', () => {
+  test.each([
+    ['要件IDがない', '### Requirement: 予約する'],
+    ['コロンがない', '### Requirement REQ-BOOKING-001 予約する'],
+    ['見出しの階層が違う', '#### Requirement: REQ-BOOKING-001 予約する'],
+    ['番号が3桁でない', '### Requirement: REQ-BOOKING-0001 予約する'],
+    ['コンテキストが小文字', '### Requirement: REQ-booking-001 予約する'],
+  ])('形式の崩れた要件の見出しを検出する: %s', (_, heading) => {
+    const malformed = { message: expect.stringContaining('の形で書いてください') as string };
     expect(
       violations({
-        [SPEC]: '### Requirement: 予約する\n',
-        'openspec/changes/x/specs/booking/spec.md': '## ADDED Requirements\n### Requirement: 取り消す\n',
+        [SPEC]: `${heading}\n`,
+        'openspec/changes/x/specs/booking/spec.md': `## ADDED Requirements\n${heading}\n`,
       }),
     ).toEqual([
-      { file: SPEC, message: expect.stringContaining('要件IDがありません') as string },
-      { file: 'openspec/changes/x/specs/booking/spec.md', message: expect.stringContaining('要件IDがありません') as string },
+      { file: SPEC, ...malformed },
+      { file: 'openspec/changes/x/specs/booking/spec.md', ...malformed },
     ]);
+  });
+
+  test('変更提案の ADDED で、仕様にある要件IDを再利用すると検出する', () => {
+    const delta = 'openspec/changes/x/specs/booking/spec.md';
+    expect(
+      violations({
+        [SPEC]: spec('REQ-BOOKING-001'),
+        [delta]: '## ADDED Requirements\n### Requirement: REQ-BOOKING-001 別の要件\n',
+        [TEST]: acceptance('REQ-BOOKING-001: a'),
+      }),
+    ).toEqual([{ file: delta, message: expect.stringContaining('ADDED の要件ID REQ-BOOKING-001') as string }]);
   });
 
   test('仕様の中で重複した要件IDを検出する', () => {

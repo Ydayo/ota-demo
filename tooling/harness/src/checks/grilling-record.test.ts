@@ -51,6 +51,15 @@ describe('Grilling 記録の検査(ADR-0005)', () => {
     expect(violations({ [PROPOSAL]: withRecord('<!-- - Q: a → A: b -->') })).toHaveLength(1);
   });
 
+  test('コードブロックの中の記録は認めない', () => {
+    expect(violations({ [PROPOSAL]: withRecord('```\n- Q: a → A: b\n```') })).toHaveLength(1);
+    expect(violations({ [PROPOSAL]: withRecord('~~~md\n- Q: a → A: b\n~~~') })).toHaveLength(1);
+  });
+
+  test('コードブロックの後の記録は認める', () => {
+    expect(violations({ [PROPOSAL]: withRecord('```\n例\n```\n- Q: a → A: b') })).toEqual([]);
+  });
+
   test('別の欄に書かれた記録は認めない', () => {
     const proposal = `${template}\n## その他\n\n- Q: a → A: b\n`;
     expect(violations({ [PROPOSAL]: proposal })).toHaveLength(1);

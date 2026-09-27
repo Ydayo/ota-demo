@@ -84,7 +84,6 @@ describe('変更されたファイルの取得', () => {
 
   test('merge-base から head までの変更を、削除・リネーム前のパスと日本語のパスを含めて返す', () => {
     const repo = materialize({ 'a.ts': 'a\n', 'old.ts': 'o\n', 'gone.ts': 'g\n' });
-    git(repo, 'init', '-q', '-b', 'main');
     commit(repo, {}, 'base');
     git(repo, 'switch', '-q', '-c', 'feature');
     git(repo, 'mv', 'old.ts', 'new.ts');

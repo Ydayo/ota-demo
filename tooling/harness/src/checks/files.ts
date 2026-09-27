@@ -1,41 +1,26 @@
 // 検査スクリプトの共通処理。
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 /** 検査で見つかった違反。file はプロジェクトルートからの相対パス(区切りは /) */
 export type Violation = { readonly file: string; readonly message: string };
 
-const SKIP_DIRS = new Set([
-  'node_modules',
-  '.git',
-  '.next',
-  '.turbo',
-  'dist',
-  'coverage',
-  'reports',
-  '.stryker-tmp',
-  'test-results',
-  'playwright-report',
-]);
-
-/** root/dir 以下のファイルを、root からの相対パス(区切りは /)で列挙する。dir がなければ空 */
+/**
+ * root/dir 以下のファイルを、root からの相対パス(区切りは /)で列挙する。
+ * Git の追跡対象と、.gitignore で除外されていない未追跡のファイルが対象(node_modules や生成物は含まない)。
+ * ディレクトリ名で除外すると、業務上の同名のディレクトリ(reports など)まで検査から漏れるため、.gitignore に従う。
+ */
 export const listFiles = (root: string, dir: string): string[] => {
-  const start = join(root, dir);
-  if (!existsSync(start)) return [];
-  const files: string[] = [];
-  const walk = (abs: string): void => {
-    for (const entry of readdirSync(abs, { withFileTypes: true })) {
-      const child = join(abs, entry.name);
-      if (entry.isDirectory()) {
-        if (!SKIP_DIRS.has(entry.name)) walk(child);
-      } else if (entry.isFile()) {
-        files.push(relative(root, child).split(sep).join('/'));
-      }
-    }
-  };
-  walk(start);
-  return files.sort();
+  const result = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', dir], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) throw new Error(`git ls-files に失敗しました: ${result.stderr.trim()}`);
+  return [...new Set(result.stdout.split('\0'))]
+    .filter((file) => file !== '' && existsSync(join(root, file)))
+    .sort();
 };
 
 export const readText = (root: string, file: string): string => readFileSync(join(root, file), 'utf8');

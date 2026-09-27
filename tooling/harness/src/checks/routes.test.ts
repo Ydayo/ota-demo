@@ -41,17 +41,41 @@ describe('Route Handler と Server Actions の検査(ADR-0010)', () => {
   test.each([
     ['ファイルの先頭', "'use server';\nexport async function save() {}\n"],
     ['二重引用符・セミコロンなし', '"use server"\nexport async function save() {}\n'],
+    ['他のディレクティブの後', "'use strict';\n'use server';\nexport async function save() {}\n"],
+    ['後ろにコメント', "'use server'; // actions\nexport async function save() {}\n"],
+    ['同じ行に続くコード', "'use server'; export async function save() {}\n"],
     ['関数の本体', "export async function save() {\n  'use server';\n}\n"],
+    ['1行の関数の本体', "export async function save() { 'use server'; return 1; }\n"],
+    ['アロー関数の本体', "export const save = async () => {\n  'use server';\n};\n"],
+    ['JSX の中のインライン関数', "export const F = () => <form action={async () => { 'use server'; }} />;\n"],
   ])('Server Actions を検出する(%s)', (_, content) => {
-    for (const path of ['apps/web/src/app/actions.ts', 'packages/modules/booking/application/a.tsx']) {
+    for (const path of ['apps/web/src/app/actions.tsx', 'packages/modules/booking/application/a.tsx']) {
       expect(files({ ...allowed, [path]: content })).toEqual([path]);
     }
   });
 
-  test('node_modules と .next は検査しない', () => {
+  test.each([
+    ['コメントの中', "// 'use server';\n/* 'use server'; */\nexport const a = 1;\n"],
+    ['文字列の値', "export const a = 'use server';\n"],
+    ['ディレクティブではない位置', "export const a = 1;\n'use server';\n"],
+  ])('Server Actions とみなさない(%s)', (_, content) => {
+    expect(files({ ...allowed, 'packages/shared/src/b.ts': content })).toEqual([]);
+  });
+
+  test('業務上のディレクトリ名(reports、dist など)の下も検査する', () => {
+    const route = 'apps/web/src/app/reports/route.ts';
+    const action = 'packages/modules/reports/dist/a.ts';
+    expect(files({ ...allowed, [route]: 'export const GET = 1;\n', [action]: "'use server';\n" })).toEqual([
+      route,
+      action,
+    ]);
+  });
+
+  test('.gitignore で除外された node_modules と .next は検査しない', () => {
     expect(
       files({
         ...allowed,
+        '.gitignore': 'node_modules/\n.next/\n',
         'apps/web/node_modules/x/route.ts': "'use server';\n",
         'apps/web/.next/server/app/api/route.js': "'use server';\n",
       }),

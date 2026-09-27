@@ -45,12 +45,12 @@ describe('保護対象の分類(ADR-0006)', () => {
   });
 });
 
-describe('書き込み時の扱い(ADR-0016)', () => {
-  test('仕様・受け入れテスト・ハーネス・憲法は人間の確認(ask)', () => {
-    expect(DECISION.spec).toBe('ask');
-    expect(DECISION['acceptance-test']).toBe('ask');
-    expect(DECISION.harness).toBe('ask');
-    expect(DECISION.constitution).toBe('ask');
+describe('書き込み時の扱い(ADR-0016、ADR-0017)', () => {
+  test('仕様・受け入れテスト・ハーネス・憲法はローカルでは止めない(allow。PR で守る)', () => {
+    expect(DECISION.spec).toBe('allow');
+    expect(DECISION['acceptance-test']).toBe('allow');
+    expect(DECISION.harness).toBe('allow');
+    expect(DECISION.constitution).toBe('allow');
   });
 
   test('~/.claude は常に拒否(deny)', () => {

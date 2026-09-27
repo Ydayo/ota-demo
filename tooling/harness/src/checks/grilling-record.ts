@@ -21,9 +21,12 @@ const changeNames = (root: string): string[] => {
     .sort();
 };
 
-/** 「## Grilling 記録」から次の「## 」までの本文(HTML コメントを除く)。欄がなければ undefined */
+/** 「## Grilling 記録」から次の「## 」までの本文(HTML コメントとコードブロックを除く)。欄がなければ undefined */
 const grillingSection = (markdown: string): string | undefined => {
-  const lines = markdown.replace(/<!--[\s\S]*?-->/g, '').split('\n');
+  const lines = markdown
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, '')
+    .split('\n');
   const start = lines.findIndex((l) => SECTION.test(l));
   if (start === -1) return undefined;
   const rest = lines.slice(start + 1);
