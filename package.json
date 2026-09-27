@@ -20,12 +20,16 @@
     "test": "vitest run --project unit --project harness",
     "test:harness": "vitest run --project harness",
     "check": "pnpm typecheck && pnpm lint && pnpm depcruise && pnpm harness && pnpm test",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "pnpm --filter @ota/tests e2e",
+    "mutation": "node tooling/harness/src/mutation/run.ts"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "catalog:",
     "@eslint/js": "catalog:",
     "@fast-check/vitest": "catalog:",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "catalog:",
     "@typescript/native": "catalog:",
     "@vitest/coverage-v8": "catalog:",

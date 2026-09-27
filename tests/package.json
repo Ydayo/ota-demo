@@ -1,0 +1,15 @@
+{
+  "name": "@ota/tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "catalog:",
+    "@playwright/test": "catalog:",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  }
+}

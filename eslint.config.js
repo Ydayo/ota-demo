@@ -14,6 +14,8 @@ export default tseslint.config(
       '**/coverage/**',
       '**/reports/**',
       '**/.stryker-tmp/**',
+      '**/test-results/**',
+      '**/playwright-report/**',
       '**/next-env.d.ts',
       'tooling/harness/fixtures/**',
     ],

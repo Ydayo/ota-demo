@@ -5,13 +5,18 @@ packages:
   - packages/modules/*
   - packages/products/*
   - tooling/*
+  - tests
 
 catalog:
+  "@axe-core/playwright": 4.13.0
   "@eslint-community/eslint-plugin-eslint-comments": 4.8.1
   "@eslint/js": 9.39.5
   "@fast-check/vitest": 0.5.0
   "@hono/node-server": 2.1.1
   "@hono/zod-openapi": 1.6.3
+  "@playwright/test": 1.63.0
+  "@stryker-mutator/core": 10.0.0
+  "@stryker-mutator/vitest-runner": 10.0.0
   "@testcontainers/postgresql": 12.1.0
   "@types/node": 24.19.0
   "@types/pg": 8.23.1
@@ -39,6 +44,7 @@ catalog:
   typescript-eslint: 8.70.1
   typescript: npm:@typescript/typescript6@6.0.2
   vitest: 4.1.11
+  yaml: 2.9.1
   zod: 4.6.5
 
 # 依存のビルドスクリプトは許可リストで管理する(pnpm 11 以降は strictDepBuilds が既定)

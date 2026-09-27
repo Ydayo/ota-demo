@@ -89,7 +89,8 @@ module.exports = {
   options: {
     doNotFollow: { path: 'node_modules' },
     // node_modules は exclude しない(exclude すると npm パッケージへの依存自体が消え、domain-pure などが検出できなくなる)
-    exclude: { path: ['\\.next/', '\\.turbo/', 'next-env\\.d\\.ts$'] },
+    // stryker.config.mjs はパッケージのコードではなく、ハーネスの共通設定を読み込む設定ファイル(ADR-0019)
+    exclude: { path: ['\\.next/', '\\.turbo/', 'next-env\\.d\\.ts$', '\\.stryker-tmp/', 'stryker\\.config\\.mjs$'] },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       exportsFields: ['exports'],

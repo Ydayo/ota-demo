@@ -6,6 +6,7 @@
     "typecheck": "tsc -p ."
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "yaml": "catalog:"
   }
 }

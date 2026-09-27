@@ -71,6 +71,7 @@ describe('CODEOWNERS と保護対象の一致', () => {
     'eslint.config.js',
     '.dependency-cruiser.cjs',
     'vitest.config.ts',
+    'tests/playwright.config.ts',
     'tsconfig.base.json',
     'turbo.json',
     'skills-lock.json',

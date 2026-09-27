@@ -122,18 +122,99 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
-          script="$RUNNER_TEMP/base/tooling/harness/src/checks/run.ts"
-          if [ ! -f "$script" ]; then
-            # この検査を導入する PR だけが該当する
-            echo "::warning::base に検査スクリプトがないため、PR 側の版で検査します"
-            script="tooling/harness/src/checks/run.ts"
+          node "$RUNNER_TEMP/base/tooling/harness/src/checks/run.ts" pr-separation \
+            --root "$GITHUB_WORKSPACE" --base "$BASE_SHA" --head "$HEAD_SHA"
+
+  # ミューテーションテスト(ADR-0019)。パッケージごとの閾値を下回れば失敗する
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: node tooling/harness/src/mutation/run.ts
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mutation-reports
+          path: |
+            apps/*/reports/mutation/
+            packages/**/reports/mutation/
+          retention-days: 7
+
+  # E2E(Playwright + axe。ADR-0019)。本番モード(next build → next start)で検査する
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_USER: ota
+          POSTGRES_PASSWORD: ota
+          POSTGRES_DB: ota
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ota -d ota"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter @ota/tests exec playwright install --with-deps chromium
+      - run: pnpm --filter @ota/web build
+      - run: pnpm --filter @ota/tests e2e
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report
+          path: tests/playwright-report/
+          retention-days: 7
+
+  # OpenAPI の破壊的変更の検知(oasdiff の CLI。ADR-0012、ADR-0019)。
+  # apps/web/openapi.json が API の定義と一致することは、単体テスト(openapi.test.ts)が検査する。
+  openapi:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OASDIFF_VERSION: 1.32.1
+      # リリースの checksums.txt にある oasdiff_1.32.1_linux_amd64.tar.gz の SHA-256
+      OASDIFF_SHA256: 7c8939fc49b75ee11fec66a5b83b37a2fca6aee109fed85013b1ba2ac2a1ee7f
+      OASDIFF_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: oasdiff を導入する
+        run: |
+          archive="$RUNNER_TEMP/oasdiff.tar.gz"
+          curl -fsSL -o "$archive" \
+            "https://github.com/oasdiff/oasdiff/releases/download/v${OASDIFF_VERSION}/oasdiff_${OASDIFF_VERSION}_linux_amd64.tar.gz"
+          echo "${OASDIFF_SHA256}  ${archive}" | sha256sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP" oasdiff
+      - name: base と比べて破壊的変更がないことを確かめる
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if ! git cat-file -e "$BASE_SHA:apps/web/openapi.json" 2>/dev/null; then
+            echo "::notice::base に apps/web/openapi.json がないため比較しません(導入する PR のみ)"
+            exit 0
           fi
-          node "$script" pr-separation --root "$GITHUB_WORKSPACE" --base "$BASE_SHA" --head "$HEAD_SHA"
+          git show "$BASE_SHA:apps/web/openapi.json" > "$RUNNER_TEMP/base-openapi.json"
+          "$RUNNER_TEMP/oasdiff" breaking "$RUNNER_TEMP/base-openapi.json" apps/web/openapi.json --fail-on ERR
 
   # 集約ジョブ。ルールセットの必須チェックはこのジョブだけにする。
   # always(): 依存ジョブの失敗時や run のキャンセル時も必ず実行する。
   #   (実行されずに skipped になると、必須チェックとしては成功扱いになるため)
-  # すべて成功(pr-separation は push では skipped)のときだけ成功する。
+  # すべて成功(pr-separation と openapi は push では skipped)のときだけ成功する。
   ci-ok:
     if: always()
     needs:
@@ -146,6 +227,9 @@ jobs:
       - harness-self-test
       - harness-checks
       - pr-separation
+      - mutation
+      - e2e
+      - openapi
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -157,7 +241,7 @@ jobs:
             to_entries
             | map(select(
                 .value.result != "success"
-                and ((.key == "pr-separation" and $event != "pull_request" and .value.result == "skipped") | not)
+                and ((.key | IN("pr-separation", "openapi")) and $event != "pull_request" and .value.result == "skipped" | not)
               ))
             | if length == 0 then true
               else (map("\(.key): \(.value.result)") | join("\n") | halt_error(1))

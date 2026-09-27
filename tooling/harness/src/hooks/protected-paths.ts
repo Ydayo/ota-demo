@@ -24,6 +24,7 @@ const HARNESS_FILES = new Set([
   'eslint.config.js',
   '.dependency-cruiser.cjs',
   'vitest.config.ts',
+  'tests/playwright.config.ts',
   'tsconfig.base.json',
   'turbo.json',
   'skills-lock.json',

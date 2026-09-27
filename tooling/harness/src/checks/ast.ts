@@ -40,6 +40,23 @@ export const hasUseServer = (source: ts.SourceFile): boolean => {
   return found;
 };
 
+/**
+ * 実行されるコードがあるか。import / export の宣言(`export {}` や再エクスポート)、型だけの宣言、
+ * declare の宣言しかないファイルには、ミューテーションテストで変異させるものがない。
+ */
+export const hasExecutableCode = (source: ts.SourceFile): boolean =>
+  source.statements.some(
+    (s) =>
+      !(
+        ts.isImportDeclaration(s) ||
+        ts.isExportDeclaration(s) ||
+        ts.isTypeAliasDeclaration(s) ||
+        ts.isInterfaceDeclaration(s) ||
+        ts.isEmptyStatement(s) ||
+        (ts.canHaveModifiers(s) && ts.getModifiers(s)?.some((m) => m.kind === ts.SyntaxKind.DeclareKeyword) === true)
+      ),
+  );
+
 const TEST_FUNCTIONS = new Set(['test', 'it', 'describe']);
 // 実行されない、条件によって実行されない、または失敗を期待するテストの修飾子
 const NOT_RUN = new Set(['skip', 'todo', 'fixme', 'skipIf', 'runIf', 'fails']);
